@@ -3,34 +3,27 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import { env } from './config/env';
+import authRoutes from './routes/auth.routes';
 
-// Créer l'application Express
 const app = express();
 
 // ==================
 // MIDDLEWARE DE BASE
 // ==================
-
-// Sécurité des en-têtes HTTP
 app.use(helmet());
-
-// Autoriser le frontend à communiquer avec le backend
 app.use(cors({
   origin: env.FRONTEND_URL,
   credentials: true,
 }));
-
-// Lire le JSON dans les requêtes
 app.use(express.json());
-
-// Logs des requêtes dans le terminal
 app.use(morgan('dev'));
 
 // ==================
-// ROUTES DE BASE
+// ROUTES
 // ==================
+app.use('/api/auth', authRoutes);
 
-// Route de test — pour vérifier que le serveur fonctionne
+// Route de test
 app.get('/', (req, res) => {
   res.json({
     message: '🚀 AERONEXIS ERP API',
@@ -39,7 +32,7 @@ app.get('/', (req, res) => {
   });
 });
 
-// Route de santé — utilisée par Docker et les outils de monitoring
+// Route de santé
 app.get('/health', (req, res) => {
   res.json({
     status: 'ok',
