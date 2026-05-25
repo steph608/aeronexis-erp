@@ -1,0 +1,133 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  DIRECTOR
+  PRODUCTION_MANAGER
+  LOGISTICS_MANAGER
+  SALES_MANAGER
+  OPERATOR
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  firstName String
+  lastName  String
+  role      Role     @default(OPERATOR)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  manufacturingOrders ManufacturingOrder[]
+  qualityIncidents    QualityIncident[]
+}
+
+model Customer {
+  id                String   @id
+  name              String
+  country           String
+  type              String
+  annualRevenue     Float
+  firstContractDate DateTime
+  status            String   @default("Actif")
+  createdAt         DateTime @default(now())
+
+  orders Order[]
+}
+
+model Product {
+  id                 String  @id
+  description        String
+  category           String
+  unitPrice          Float
+  manufacturingTimeH Float
+  weightKg           Float
+  certification      String
+
+  orderLines          OrderLine[]
+  manufacturingOrders ManufacturingOrder[]
+}
+
+model Order {
+  id                   String    @id
+  customerId           String
+  orderDate            DateTime
+  expectedDeliveryDate DateTime
+  status               String
+  totalAmount          Float
+  priority             String
+  salesManager         String
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  customer   Customer    @relation(fields: [customerId], references: [id])
+  orderLines OrderLine[]
+}
+
+model OrderLine {
+  id         String  @id
+  orderId    String
+  productId  String
+  quantity   Int
+  unitPrice  Float
+  lineAmount Float
+  lineStatus String
+
+  order   Order   @relation(fields: [orderId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+}
+
+model RawMaterial {
+  id                String   @id
+  description       String
+  unit              String
+  currentStock      Float
+  minimumStock      Float
+  reservedStock     Float
+  supplier          String
+  lastReplenishment DateTime
+  updatedAt         DateTime @updatedAt
+}
+
+model ManufacturingOrder {
+  id              String   @id
+  productId       String
+  batchNumber     String   @unique
+  quantity        Int
+  launchDate      DateTime
+  expectedEndDate DateTime
+  status          String
+  operatorId      Int?
+  site            String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  product          Product           @relation(fields: [productId], references: [id])
+  operator         User?             @relation(fields: [operatorId], references: [id])
+  qualityIncidents QualityIncident[]
+}
+
+model QualityIncident {
+  id                 String   @id
+  detectionDate      DateTime
+  batchNumber        String
+  anomalyType        String
+  severity           String
+  status             String
+  responsibleId      Int?
+  correctiveAction   String
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  responsible        User?              @relation(fields: [responsibleId], references: [id])
+  manufacturingOrder ManufacturingOrder @relation(fields: [batchNumber], references: [batchNumber])
+}
