@@ -5,6 +5,7 @@ import morgan from 'morgan';
 import { env } from './config/env';
 import authRoutes from './routes/auth.routes';
 import userRoutes from './routes/user.routes';  // ← ajouter
+import orderRoutes from './routes/order.routes';
 
 const app = express();
 
@@ -18,7 +19,7 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(morgan('dev'));
-
+app.use('/api/orders', orderRoutes);
 // ==================
 // ROUTES
 // ==================
