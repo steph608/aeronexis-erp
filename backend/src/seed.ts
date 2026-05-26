@@ -103,6 +103,20 @@ async function main() {
     ],
     skipDuplicates: true,
   });
+  // ================================
+  // INCIDENTS QUALITÉ
+  // ================================
+  await prisma.qualityIncident.createMany({
+    data: [
+      { id: 'INC-2026-001', detectionDate: new Date('2026-02-02'), batchNumber: 'LOT-AX-2401-001', anomalyType: 'Dimension hors tolérance', severity: 'Moyenne', status: 'Résolu', correctiveAction: 'Recalibrage machine CNC' },
+      { id: 'INC-2026-002', detectionDate: new Date('2026-02-07'), batchNumber: 'LOT-MT-1105-001', anomalyType: 'Rugosité surface', severity: 'Faible', status: 'En cours', correctiveAction: 'Révision process polissage' },
+      { id: 'INC-2026-003', detectionDate: new Date('2026-02-10'), batchNumber: 'LOT-EL-3301-001', anomalyType: 'Défaut soudure', severity: 'Critique', status: 'En cours', correctiveAction: 'Remplacement composant' },
+      { id: 'INC-2026-004', detectionDate: new Date('2026-02-13'), batchNumber: 'LOT-DR-5501-001', anomalyType: 'Rayure cosmétique', severity: 'Faible', status: 'Résolu', correctiveAction: 'Amélioration emballage' },
+      { id: 'INC-2026-005', detectionDate: new Date('2026-02-15'), batchNumber: 'LOT-AX-2401-002', anomalyType: 'Fuite hydraulique test', severity: 'Critique', status: 'En cours', correctiveAction: 'Changement joint' },
+    ],
+    skipDuplicates: true,
+  });
+  console.log('✅ Incidents qualité importés');
   console.log('✅ Ordres de fabrication importés');
   console.log('✅ Matières premières importées');
 

@@ -8,6 +8,7 @@ import userRoutes from './routes/user.routes';  // ← ajouter
 import orderRoutes from './routes/order.routes';
 import materialRoutes from './routes/material.routes';
 import manufacturingRoutes from './routes/manufacturing.routes';
+import incidentRoutes from './routes/incident.routes';
 const app = express();
 
 // ==================
@@ -29,6 +30,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/materials', materialRoutes);
 app.use('/api/manufacturing', manufacturingRoutes);
+app.use('/api/incidents', incidentRoutes);
 // Route de test
 app.get('/', (req, res) => {
   res.json({
