@@ -7,6 +7,7 @@ import authRoutes from './routes/auth.routes';
 import userRoutes from './routes/user.routes';  // ← ajouter
 import orderRoutes from './routes/order.routes';
 import materialRoutes from './routes/material.routes';
+import manufacturingRoutes from './routes/manufacturing.routes';
 const app = express();
 
 // ==================
@@ -27,6 +28,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/materials', materialRoutes);
+app.use('/api/manufacturing', manufacturingRoutes);
 // Route de test
 app.get('/', (req, res) => {
   res.json({

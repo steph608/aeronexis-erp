@@ -83,6 +83,27 @@ async function main() {
     ],
     skipDuplicates: true,
   });
+  // ================================
+  // ORDRES DE FABRICATION
+  // ================================
+  await prisma.manufacturingOrder.createMany({
+    data: [
+      { id: 'OF-2026-0045', productId: 'PROD-AX-2401', batchNumber: 'LOT-AX-2401-001', quantity: 50, launchDate: new Date('2026-02-06'), expectedEndDate: new Date('2026-02-20'), status: 'En cours', site: 'Site Lyon' },
+      { id: 'OF-2026-0046', productId: 'PROD-AX-2402', batchNumber: 'LOT-AX-2402-001', quantity: 150, launchDate: new Date('2026-02-07'), expectedEndDate: new Date('2026-02-17'), status: 'En cours', site: 'Site Lyon' },
+      { id: 'OF-2026-0047', productId: 'PROD-MT-1105', batchNumber: 'LOT-MT-1105-001', quantity: 20, launchDate: new Date('2026-02-08'), expectedEndDate: new Date('2026-02-25'), status: 'En cours', site: 'Site Toulouse' },
+      { id: 'OF-2026-0048', productId: 'PROD-EL-3301', batchNumber: 'LOT-EL-3301-001', quantity: 5, launchDate: new Date('2026-02-10'), expectedEndDate: new Date('2026-02-23'), status: 'Planifié', site: 'Site Lyon' },
+      { id: 'OF-2026-0049', productId: 'PROD-MT-1106', batchNumber: 'LOT-MT-1106-001', quantity: 80, launchDate: new Date('2026-02-15'), expectedEndDate: new Date('2026-03-03'), status: 'Planifié', site: 'Site Toulouse' },
+      { id: 'OF-2026-0050', productId: 'PROD-DR-5501', batchNumber: 'LOT-DR-5501-001', quantity: 80, launchDate: new Date('2026-02-06'), expectedEndDate: new Date('2026-02-19'), status: 'En cours', site: 'Site Lyon' },
+      { id: 'OF-2026-0051', productId: 'PROD-DR-5502', batchNumber: 'LOT-DR-5502-001', quantity: 50, launchDate: new Date('2026-02-07'), expectedEndDate: new Date('2026-02-18'), status: 'En cours', site: 'Site Lyon' },
+      { id: 'OF-2026-0052', productId: 'PROD-ST-7801', batchNumber: 'LOT-ST-7801-001', quantity: 500, launchDate: new Date('2026-01-30'), expectedEndDate: new Date('2026-02-10'), status: 'Terminé', site: 'Site Lyon' },
+      { id: 'OF-2026-0053', productId: 'PROD-ST-7802', batchNumber: 'LOT-ST-7802-001', quantity: 1000, launchDate: new Date('2026-01-30'), expectedEndDate: new Date('2026-02-08'), status: 'Terminé', site: 'Site Lyon' },
+      { id: 'OF-2026-0054', productId: 'PROD-AX-2401', batchNumber: 'LOT-AX-2401-002', quantity: 60, launchDate: new Date('2026-02-13'), expectedEndDate: new Date('2026-02-27'), status: 'En cours', site: 'Site Lyon' },
+      { id: 'OF-2026-0055', productId: 'PROD-MT-1105', batchNumber: 'LOT-MT-1105-002', quantity: 25, launchDate: new Date('2026-02-14'), expectedEndDate: new Date('2026-03-01'), status: 'En cours', site: 'Site Toulouse' },
+      { id: 'OF-2026-0056', productId: 'PROD-EL-3301', batchNumber: 'LOT-EL-3301-002', quantity: 15, launchDate: new Date('2026-02-16'), expectedEndDate: new Date('2026-03-01'), status: 'En cours', site: 'Site Lyon' },
+    ],
+    skipDuplicates: true,
+  });
+  console.log('✅ Ordres de fabrication importés');
   console.log('✅ Matières premières importées');
 
   console.log('🎉 Toutes les données ont été importées avec succès !');
