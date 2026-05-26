@@ -116,6 +116,29 @@ async function main() {
     ],
     skipDuplicates: true,
   });
+  // ================================
+  // LIGNES DE COMMANDES
+  // ================================
+  await prisma.orderLine.createMany({
+    data: [
+      { id: 'LG-001', orderId: 'CMD-2026-001', productId: 'PROD-AX-2401', quantity: 50, unitPrice: 1250, lineAmount: 62500, lineStatus: 'En cours' },
+      { id: 'LG-002', orderId: 'CMD-2026-001', productId: 'PROD-AX-2402', quantity: 150, unitPrice: 340, lineAmount: 51000, lineStatus: 'En cours' },
+      { id: 'LG-003', orderId: 'CMD-2026-002', productId: 'PROD-MT-1105', quantity: 20, unitPrice: 2890, lineAmount: 57800, lineStatus: 'En cours' },
+      { id: 'LG-004', orderId: 'CMD-2026-002', productId: 'PROD-EL-3301', quantity: 5, unitPrice: 4200, lineAmount: 21000, lineStatus: 'Planifiée' },
+      { id: 'LG-005', orderId: 'CMD-2026-003', productId: 'PROD-MT-1106', quantity: 80, unitPrice: 1670, lineAmount: 133600, lineStatus: 'Planifiée' },
+      { id: 'LG-006', orderId: 'CMD-2026-003', productId: 'PROD-EL-3302', quantity: 100, unitPrice: 890, lineAmount: 89000, lineStatus: 'Planifiée' },
+      { id: 'LG-007', orderId: 'CMD-2026-004', productId: 'PROD-DR-5501', quantity: 80, unitPrice: 560, lineAmount: 44800, lineStatus: 'En cours' },
+      { id: 'LG-008', orderId: 'CMD-2026-004', productId: 'PROD-DR-5502', quantity: 50, unitPrice: 420, lineAmount: 21000, lineStatus: 'En cours' },
+      { id: 'LG-009', orderId: 'CMD-2026-005', productId: 'PROD-ST-7801', quantity: 500, unitPrice: 45, lineAmount: 22500, lineStatus: 'Terminée' },
+      { id: 'LG-010', orderId: 'CMD-2026-005', productId: 'PROD-ST-7802', quantity: 1000, unitPrice: 12, lineAmount: 12000, lineStatus: 'Terminée' },
+      { id: 'LG-011', orderId: 'CMD-2026-006', productId: 'PROD-AX-2401', quantity: 60, unitPrice: 1250, lineAmount: 75000, lineStatus: 'En cours' },
+      { id: 'LG-012', orderId: 'CMD-2026-006', productId: 'PROD-MT-1105', quantity: 25, unitPrice: 2890, lineAmount: 72250, lineStatus: 'En cours' },
+      { id: 'LG-013', orderId: 'CMD-2026-007', productId: 'PROD-EL-3301', quantity: 15, unitPrice: 4200, lineAmount: 63000, lineStatus: 'En cours' },
+      { id: 'LG-014', orderId: 'CMD-2026-007', productId: 'PROD-AX-2402', quantity: 100, unitPrice: 340, lineAmount: 34000, lineStatus: 'En cours' },
+    ],
+    skipDuplicates: true,
+  });
+  console.log('✅ Lignes de commandes importées');
   console.log('✅ Incidents qualité importés');
   console.log('✅ Ordres de fabrication importés');
   console.log('✅ Matières premières importées');
