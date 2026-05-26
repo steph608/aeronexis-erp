@@ -11,6 +11,7 @@ import manufacturingRoutes from './routes/manufacturing.routes';
 import incidentRoutes from './routes/incident.routes';
 import customerRoutes from './routes/customer.routes';
 import productRoutes from './routes/product.routes';
+import dashboardRoutes from './routes/dashboard.routes';
 const app = express();
 
 // ==================
@@ -35,6 +36,7 @@ app.use('/api/manufacturing', manufacturingRoutes);
 app.use('/api/incidents', incidentRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/products', productRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 // Route de test
 app.get('/', (req, res) => {
   res.json({
