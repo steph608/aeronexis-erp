@@ -9,6 +9,7 @@ import orderRoutes from './routes/order.routes';
 import materialRoutes from './routes/material.routes';
 import manufacturingRoutes from './routes/manufacturing.routes';
 import incidentRoutes from './routes/incident.routes';
+import customerRoutes from './routes/customer.routes';
 const app = express();
 
 // ==================
@@ -31,6 +32,7 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/materials', materialRoutes);
 app.use('/api/manufacturing', manufacturingRoutes);
 app.use('/api/incidents', incidentRoutes);
+app.use('/api/customers', customerRoutes);
 // Route de test
 app.get('/', (req, res) => {
   res.json({
