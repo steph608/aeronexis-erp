@@ -6,7 +6,7 @@ import { env } from './config/env';
 import authRoutes from './routes/auth.routes';
 import userRoutes from './routes/user.routes';  // ← ajouter
 import orderRoutes from './routes/order.routes';
-
+import materialRoutes from './routes/material.routes';
 const app = express();
 
 // ==================
@@ -19,13 +19,14 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(morgan('dev'));
-app.use('/api/orders', orderRoutes);
+
 // ==================
 // ROUTES
 // ==================
 app.use('/api/auth', authRoutes);
-app.use('/api/users', userRoutes);  // ← ajouter
-
+app.use('/api/users', userRoutes);
+app.use('/api/orders', orderRoutes);
+app.use('/api/materials', materialRoutes);
 // Route de test
 app.get('/', (req, res) => {
   res.json({
