@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { z } from 'zod';
 import { loginUser, registerUser, getUserById } from '../services/auth.service';
 import { AuthRequest } from '../middleware/auth.middleware';
+import { logAction } from '../services/audit.service';
 
 // ================================
 // VALIDATION DES DONNÉES
@@ -31,14 +32,21 @@ const registerSchema = z.object({
 // ================================
 export const login = async (req: Request, res: Response) => {
   try {
-    // Valider les données reçues
     const validatedData = loginSchema.parse(req.body);
-
-    // Appeler le service
     const result = await loginUser(
       validatedData.email,
       validatedData.password
     );
+
+    // Enregistrer la connexion
+    await logAction({
+      userId: result.user.id,
+      userEmail: result.user.email,
+      action: 'LOGIN',
+      module: 'auth',
+      description: `Connexion de ${result.user.firstName} ${result.user.lastName}`,
+      ipAddress: req.ip,
+    });
 
     res.status(200).json({
       success: true,
@@ -66,11 +74,17 @@ export const login = async (req: Request, res: Response) => {
 // ================================
 export const register = async (req: Request, res: Response) => {
   try {
-    // Valider les données reçues
     const validatedData = registerSchema.parse(req.body);
-
-    // Appeler le service
     const user = await registerUser(validatedData);
+
+    // Enregistrer la création du compte
+    await logAction({
+      userEmail: user.email,
+      action: 'REGISTER',
+      module: 'auth',
+      description: `Nouveau compte créé : ${user.firstName} ${user.lastName} (${user.role})`,
+      ipAddress: req.ip,
+    });
 
     res.status(201).json({
       success: true,
@@ -104,7 +118,6 @@ export const register = async (req: Request, res: Response) => {
 export const getMe = async (req: AuthRequest, res: Response) => {
   try {
     const user = await getUserById(req.user!.id);
-
     res.status(200).json({
       success: true,
       data: user,
@@ -120,9 +133,26 @@ export const getMe = async (req: AuthRequest, res: Response) => {
 // ================================
 // DÉCONNEXION
 // ================================
-export const logout = (req: Request, res: Response) => {
-  res.status(200).json({
-    success: true,
-    message: 'Déconnexion réussie',
-  });
+export const logout = async (req: AuthRequest, res: Response) => {
+  try {
+    // Enregistrer la déconnexion
+    await logAction({
+      userId: req.user?.id,
+      userEmail: req.user?.email,
+      action: 'LOGOUT',
+      module: 'auth',
+      description: `Déconnexion de ${req.user?.email}`,
+      ipAddress: req.ip,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Déconnexion réussie',
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
 };

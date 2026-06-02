@@ -9,6 +9,7 @@ import {
   reserveStock,
   getStockStats,
 } from '../services/material.service';
+import { logAction } from '../services/audit.service';
 
 // ================================
 // VALIDATION
@@ -84,22 +85,26 @@ export const getAlerts = async (req: AuthRequest, res: Response) => {
 // ================================
 export const updateMaterialHandler = async (req: AuthRequest, res: Response) => {
   try {
-    console.log('Body reçu:', req.body);
-    console.log('Type currentStock:', typeof req.body.currentStock);
-    
     const id = req.params['id'] as string;
     const validatedData = updateMaterialSchema.parse(req.body);
-    
-    console.log('Données validées:', validatedData);
-    
     const material = await updateMaterial(id, validatedData);
+
+    // Enregistrer l'action
+    await logAction({
+      userId: req.user!.id,
+      userEmail: req.user!.email,
+      action: 'UPDATE',
+      module: 'materials',
+      description: `Mise a jour stock ${id} — ${material.description} — Nouveau stock: ${material.currentStock} ${material.unit}`,
+      ipAddress: req.ip,
+    });
+
     res.status(200).json({
       success: true,
       message: 'Stock mis à jour avec succès',
       data: material,
     });
   } catch (error: any) {
-    console.log('Erreur complète:', JSON.stringify(error, null, 2));
     if (error.name === 'ZodError') {
       return res.status(400).json({
         success: false,
@@ -123,6 +128,17 @@ export const reserveStockHandler = async (req: AuthRequest, res: Response) => {
     const id = req.params['id'] as string;
     const validatedData = reserveStockSchema.parse(req.body);
     const material = await reserveStock(id, validatedData.quantity);
+
+    // Enregistrer l'action
+    await logAction({
+      userId: req.user!.id,
+      userEmail: req.user!.email,
+      action: 'RESERVE',
+      module: 'materials',
+      description: `Reservation stock ${id} — ${material.description} — Quantite: ${validatedData.quantity} ${material.unit} — Stock reserve total: ${material.reservedStock} ${material.unit}`,
+      ipAddress: req.ip,
+    });
+
     res.status(200).json({
       success: true,
       message: 'Stock réservé avec succès',

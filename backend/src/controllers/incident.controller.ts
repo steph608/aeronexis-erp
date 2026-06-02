@@ -8,6 +8,7 @@ import {
   updateIncident,
   getIncidentStats,
 } from '../services/incident.service';
+import { logAction } from '../services/audit.service';
 
 // ================================
 // VALIDATION
@@ -78,6 +79,17 @@ export const createIncidentHandler = async (
   try {
     const validatedData = createSchema.parse(req.body);
     const incident = await createIncident(validatedData);
+
+    // Enregistrer l'action — critique car signalement d'anomalie
+    await logAction({
+      userId: req.user!.id,
+      userEmail: req.user!.email,
+      action: 'CREATE',
+      module: 'incidents',
+      description: `Signalement incident ${incident.id} — Lot: ${incident.batchNumber} — Type: ${incident.anomalyType} — Severite: ${incident.severity}`,
+      ipAddress: req.ip,
+    });
+
     res.status(201).json({
       success: true,
       message: 'Incident créé avec succès',
@@ -109,6 +121,17 @@ export const updateIncidentHandler = async (
     const id = req.params['id'] as string;
     const validatedData = updateSchema.parse(req.body);
     const incident = await updateIncident(id, validatedData);
+
+    // Enregistrer l'action
+    await logAction({
+      userId: req.user!.id,
+      userEmail: req.user!.email,
+      action: 'UPDATE',
+      module: 'incidents',
+      description: `Modification incident ${id} — Nouveau statut: ${validatedData.status || 'modifié'} — Action corrective: ${validatedData.correctiveAction || 'inchangée'}`,
+      ipAddress: req.ip,
+    });
+
     res.status(200).json({
       success: true,
       message: 'Incident modifié avec succès',

@@ -9,6 +9,7 @@ import {
   updateManufacturingOrder,
   getManufacturingStats,
 } from '../services/manufacturing.service';
+import { logAction } from '../services/audit.service';
 
 // ================================
 // VALIDATION
@@ -76,6 +77,17 @@ export const getOrder = async (req: AuthRequest, res: Response) => {
 export const getTraceability = async (req: AuthRequest, res: Response) => {
   try {
     const batchNumber = req.params['batchNumber'] as string;
+
+    // Enregistrer la consultation de traçabilité
+    await logAction({
+      userId: req.user!.id,
+      userEmail: req.user!.email,
+      action: 'VIEW',
+      module: 'manufacturing',
+      description: `Consultation tracabilite lot ${batchNumber}`,
+      ipAddress: req.ip,
+    });
+
     const trace = await getLotTraceability(batchNumber);
     res.status(200).json({
       success: true,
@@ -96,6 +108,17 @@ export const createOrder = async (req: AuthRequest, res: Response) => {
   try {
     const validatedData = createSchema.parse(req.body);
     const order = await createManufacturingOrder(validatedData);
+
+    // Enregistrer l'action
+    await logAction({
+      userId: req.user!.id,
+      userEmail: req.user!.email,
+      action: 'CREATE',
+      module: 'manufacturing',
+      description: `Création OF ${order.id} — Lot: ${order.batchNumber} — Produit: ${order.productId} — Site: ${order.site}`,
+      ipAddress: req.ip,
+    });
+
     res.status(201).json({
       success: true,
       message: 'Ordre de fabrication créé avec succès',
@@ -124,6 +147,17 @@ export const updateOrder = async (req: AuthRequest, res: Response) => {
     const id = req.params['id'] as string;
     const validatedData = updateSchema.parse(req.body);
     const order = await updateManufacturingOrder(id, validatedData);
+
+    // Enregistrer l'action
+    await logAction({
+      userId: req.user!.id,
+      userEmail: req.user!.email,
+      action: 'UPDATE',
+      module: 'manufacturing',
+      description: `Modification OF ${id} — Lot: ${order.batchNumber} — Nouveau statut: ${validatedData.status || 'modifié'}`,
+      ipAddress: req.ip,
+    });
+
     res.status(200).json({
       success: true,
       message: 'Ordre de fabrication modifié avec succès',

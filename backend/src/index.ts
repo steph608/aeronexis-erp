@@ -13,6 +13,7 @@ import customerRoutes from './routes/customer.routes';
 import productRoutes from './routes/product.routes';
 import dashboardRoutes from './routes/dashboard.routes';
 import aiRoutes from './routes/ai.routes';
+import auditRoutes from './routes/audit.routes';
 const app = express();
 
 // ==================
@@ -30,6 +31,7 @@ app.use(morgan('dev'));
 // ROUTES
 // ==================
 app.use('/api/auth', authRoutes);
+app.use('/api/audit', auditRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/materials', materialRoutes);

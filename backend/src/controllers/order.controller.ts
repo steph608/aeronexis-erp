@@ -9,6 +9,7 @@ import {
   deleteOrder,
   getOrderStats,
 } from '../services/order.service';
+import { logAction } from '../services/audit.service';
 
 // ================================
 // VALIDATION
@@ -82,6 +83,17 @@ export const createOrderHandler = async (req: AuthRequest, res: Response) => {
   try {
     const validatedData = createOrderSchema.parse(req.body);
     const order = await createOrder(validatedData);
+
+    // Enregistrer l'action
+    await logAction({
+      userId: req.user!.id,
+      userEmail: req.user!.email,
+      action: 'CREATE',
+      module: 'orders',
+      description: `Création commande ${order.id} — Client: ${order.customerId} — Montant: ${order.totalAmount}€`,
+      ipAddress: req.ip,
+    });
+
     res.status(201).json({
       success: true,
       message: 'Commande créée avec succès',
@@ -110,6 +122,17 @@ export const updateOrderHandler = async (req: AuthRequest, res: Response) => {
     const id = req.params['id'] as string;
     const validatedData = updateOrderSchema.parse(req.body);
     const order = await updateOrder(id, validatedData);
+
+    // Enregistrer l'action
+    await logAction({
+      userId: req.user!.id,
+      userEmail: req.user!.email,
+      action: 'UPDATE',
+      module: 'orders',
+      description: `Modification commande ${id} — Nouveau statut: ${validatedData.status || 'modifié'}`,
+      ipAddress: req.ip,
+    });
+
     res.status(200).json({
       success: true,
       message: 'Commande modifiée avec succès',
@@ -137,6 +160,17 @@ export const deleteOrderHandler = async (req: AuthRequest, res: Response) => {
   try {
     const id = req.params['id'] as string;
     const result = await deleteOrder(id);
+
+    // Enregistrer l'action
+    await logAction({
+      userId: req.user!.id,
+      userEmail: req.user!.email,
+      action: 'DELETE',
+      module: 'orders',
+      description: `Suppression commande ${id}`,
+      ipAddress: req.ip,
+    });
+
     res.status(200).json({
       success: true,
       message: result.message,
