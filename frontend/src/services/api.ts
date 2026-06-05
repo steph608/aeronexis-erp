@@ -122,3 +122,25 @@ export const aiAPI = {
   quality: () => api.get('/ai/quality'),
   fullReport: () => api.get('/ai/report'),
 };
+// ── Shipments ─────────────────────────────
+export const shipmentsAPI = {
+  getAll: () => api.get('/shipments'),
+  getOne: (id: string) => api.get(`/shipments/${id}`),
+  getStats: () => api.get('/shipments/stats'),
+  create: (data: any) => api.post('/shipments', data),
+  update: (id: string, data: any) => api.put(`/shipments/${id}`, data),
+};
+
+// ── Notifications ─────────────────────────
+export const notificationsAPI = {
+  getAll: () => api.get('/notifications'),
+  getUnread: () => api.get('/notifications/unread'),
+  markRead: (id: number) => api.put(`/notifications/${id}/read`),
+  markAllRead: () => api.put('/notifications/read-all'),
+};
+
+// ── Audit ─────────────────────────────────
+export const auditAPI = {
+  getAll: () => api.get('/audit'),
+  getMy: () => api.get('/audit/my'),
+};

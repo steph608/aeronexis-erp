@@ -1,114 +1,54 @@
 import type { Role, Permissions } from '../types';
 
-// ============================================
-// RBAC PERMISSIONS — AERONEXIS ERP
-// Based on actual backend route middleware analysis
-// ============================================
-
-const FULL_ACCESS = {
-  canView: true,
-  canCreate: true,
-  canUpdate: true,
-  canDelete: true,
-};
-
-const READ_ONLY = {
-  canView: true,
-  canCreate: false,
-  canUpdate: false,
-  canDelete: false,
-};
-
-const READ_WRITE = {
-  canView: true,
-  canCreate: true,
-  canUpdate: true,
-  canDelete: false,
-};
-
-const NO_ACCESS = {
-  canView: false,
-  canCreate: false,
-  canUpdate: false,
-  canDelete: false,
-};
+const FULL_ACCESS = { canView: true, canCreate: true, canUpdate: true, canDelete: true };
+const READ_ONLY = { canView: true, canCreate: false, canUpdate: false, canDelete: false };
+const READ_WRITE = { canView: true, canCreate: true, canUpdate: true, canDelete: false };
+const NO_ACCESS = { canView: false, canCreate: false, canUpdate: false, canDelete: false };
 
 export const ROLE_PERMISSIONS: Record<Role, Permissions> = {
-  // ── ADMIN: full access to everything ──────
   ADMIN: {
-    dashboard: FULL_ACCESS,
-    orders: FULL_ACCESS,
-    manufacturing: FULL_ACCESS,
-    materials: FULL_ACCESS,
-    incidents: FULL_ACCESS,
-    customers: FULL_ACCESS,
-    products: FULL_ACCESS,
-    users: FULL_ACCESS,
+    dashboard: FULL_ACCESS, orders: FULL_ACCESS, manufacturing: FULL_ACCESS,
+    materials: FULL_ACCESS, incidents: FULL_ACCESS, customers: FULL_ACCESS,
+    products: FULL_ACCESS, users: FULL_ACCESS, shipments: FULL_ACCESS, audit: FULL_ACCESS,
     ai: { delays: true, stock: true, quality: true, fullReport: true },
   },
-
-  // ── DIRECTOR: read all + full AI reports ──
   DIRECTOR: {
-    dashboard: READ_ONLY,
-    orders: READ_ONLY,
-    manufacturing: READ_ONLY,
-    materials: READ_ONLY,
-    incidents: READ_ONLY,
-    customers: READ_ONLY,
-    products: READ_ONLY,
-    users: READ_ONLY,
+    dashboard: READ_ONLY, orders: READ_ONLY, manufacturing: READ_ONLY,
+    materials: READ_ONLY, incidents: READ_ONLY, customers: READ_ONLY,
+    products: READ_ONLY, users: READ_ONLY, shipments: READ_ONLY, audit: READ_ONLY,
     ai: { delays: true, stock: true, quality: true, fullReport: true },
   },
-
-  // ── PRODUCTION_MANAGER: manufacturing + quality ──
   PRODUCTION_MANAGER: {
-    dashboard: READ_ONLY,
-    orders: READ_ONLY,
+    dashboard: READ_ONLY, orders: READ_ONLY,
     manufacturing: { canView: true, canCreate: true, canUpdate: true, canDelete: false },
     materials: READ_ONLY,
     incidents: { canView: true, canCreate: true, canUpdate: true, canDelete: false },
     customers: READ_ONLY,
     products: { canView: true, canCreate: true, canUpdate: true, canDelete: false },
-    users: READ_ONLY,
+    users: READ_ONLY, shipments: READ_ONLY, audit: READ_ONLY,
     ai: { delays: false, stock: false, quality: true, fullReport: false },
   },
-
-  // ── LOGISTICS_MANAGER: materials + stock ──
   LOGISTICS_MANAGER: {
-    dashboard: READ_ONLY,
-    orders: READ_ONLY,
-    manufacturing: READ_ONLY,
+    dashboard: READ_ONLY, orders: READ_ONLY, manufacturing: READ_ONLY,
     materials: { canView: true, canCreate: false, canUpdate: true, canDelete: false },
-    incidents: READ_ONLY,
-    customers: READ_ONLY,
-    products: READ_ONLY,
-    users: READ_ONLY,
+    incidents: READ_ONLY, customers: READ_ONLY, products: READ_ONLY, users: READ_ONLY,
+    shipments: { canView: true, canCreate: true, canUpdate: true, canDelete: false },
+    audit: READ_ONLY,
     ai: { delays: false, stock: true, quality: false, fullReport: false },
   },
-
-  // ── SALES_MANAGER: customers + orders ──
   SALES_MANAGER: {
-    dashboard: READ_ONLY,
-    orders: READ_WRITE,
-    manufacturing: READ_ONLY,
-    materials: READ_ONLY,
-    incidents: READ_ONLY,
+    dashboard: READ_ONLY, orders: READ_WRITE, manufacturing: READ_ONLY,
+    materials: READ_ONLY, incidents: READ_ONLY,
     customers: { canView: true, canCreate: true, canUpdate: true, canDelete: false },
-    products: READ_ONLY,
-    users: READ_ONLY,
+    products: READ_ONLY, users: READ_ONLY, shipments: READ_ONLY, audit: NO_ACCESS,
     ai: { delays: true, stock: false, quality: false, fullReport: false },
   },
-
-  // ── OPERATOR: mostly read + report incidents ──
   OPERATOR: {
-    dashboard: NO_ACCESS,
-    orders: READ_ONLY,
-    manufacturing: READ_ONLY,
+    dashboard: NO_ACCESS, orders: READ_ONLY, manufacturing: READ_ONLY,
     materials: READ_ONLY,
     incidents: { canView: true, canCreate: true, canUpdate: false, canDelete: false },
-    customers: READ_ONLY,
-    products: READ_ONLY,
-    users: READ_ONLY,
+    customers: READ_ONLY, products: READ_ONLY, users: READ_ONLY,
+    shipments: NO_ACCESS, audit: READ_ONLY,
     ai: { delays: false, stock: false, quality: false, fullReport: false },
   },
 };
@@ -130,11 +70,10 @@ export function hasAIAccess(role: Role, feature: keyof Permissions['ai']): boole
   return getPermissions(role).ai[feature] ?? false;
 }
 
-// Modules accessible by the role (for sidebar)
 export function getAccessibleModules(role: Role): string[] {
   const perms = getPermissions(role);
   const modules: string[] = [];
-  
+
   if (perms.dashboard.canView) modules.push('dashboard');
   if (perms.orders.canView) modules.push('orders');
   if (perms.manufacturing.canView) modules.push('manufacturing');
@@ -143,14 +82,15 @@ export function getAccessibleModules(role: Role): string[] {
   if (perms.customers.canView) modules.push('customers');
   if (perms.products.canView) modules.push('products');
   if (perms.users.canView) modules.push('users');
-  
+  if (perms.shipments?.canView) modules.push('shipments');
+  if (perms.audit?.canView) modules.push('audit');
+
   const ai = perms.ai;
   if (ai.delays || ai.stock || ai.quality || ai.fullReport) modules.push('ai');
-  
+
   return modules;
 }
 
-// Role display labels
 export const ROLE_LABELS: Record<Role, string> = {
   ADMIN: 'Administrateur',
   DIRECTOR: 'Directeur',

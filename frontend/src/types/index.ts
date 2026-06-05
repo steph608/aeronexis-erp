@@ -192,6 +192,8 @@ export type Permissions = {
   incidents: ModulePermission;
   customers: ModulePermission;
   products: ModulePermission;
+  shipments: ModulePermission;
+  audit: ModulePermission;
   users: ModulePermission;
   ai: {
     delays: boolean;

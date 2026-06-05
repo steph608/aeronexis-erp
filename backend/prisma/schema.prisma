@@ -27,6 +27,8 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   auditLogs AuditLog[]
+  shipments     Shipment[]
+  notifications Notification[]
 
   manufacturingOrders ManufacturingOrder[]
   qualityIncidents    QualityIncident[]
@@ -72,6 +74,7 @@ model Order {
 
   customer   Customer    @relation(fields: [customerId], references: [id])
   orderLines OrderLine[]
+  shipments Shipment[]
 }
 
 model OrderLine {
@@ -141,6 +144,35 @@ model AuditLog {
   description String
   ipAddress   String?
   createdAt   DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+}
+model Shipment {
+  id             String    @id
+  orderId        String
+  destination    String
+  carrier        String?
+  trackingNumber String?
+  status         String    @default("Planifiée")
+  scheduledDate  DateTime
+  actualDate     DateTime?
+  notes          String?
+  createdById    Int?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  order     Order @relation(fields: [orderId], references: [id])
+  createdBy User? @relation(fields: [createdById], references: [id])
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int?
+  title     String
+  message   String
+  type      String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
 
   user User? @relation(fields: [userId], references: [id])
 }

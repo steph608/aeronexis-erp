@@ -3,7 +3,7 @@ import {
   LayoutDashboard, ShoppingCart, Factory, Package2,
   AlertTriangle, Users2, BoxSelect, Users, Brain,
   LogOut, ChevronLeft, ChevronRight,
-  Plane,
+  Plane,Truck, ClipboardList,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { ROLE_LABELS, ROLE_COLORS } from '../../lib/permissions';
@@ -28,9 +28,10 @@ const ALL_NAV_ITEMS: NavItem[] = [
   { id: 'customers', label: 'Clients', icon: <Users2 size={18} />, path: '/customers' },
   { id: 'products', label: 'Catalogue Produits', icon: <BoxSelect size={18} />, path: '/products' },
   { id: 'users', label: 'Utilisateurs', icon: <Users size={18} />, path: '/users' },
+  { id: 'shipments', label: 'Expéditions', icon: <Truck size={18} />, path: '/shipments' },
+  { id: 'audit', label: 'Historique', icon: <ClipboardList size={18} />, path: '/audit' },
   { id: 'ai', label: 'Intelligence IA', icon: <Brain size={18} />, path: '/ai' },
 ];
-
 interface SidebarProps {
   collapsed: boolean;
   setCollapsed: (v: boolean) => void;
