@@ -106,23 +106,33 @@ export function OrdersPage() {
             description={search ? 'Aucun résultat pour votre recherche' : 'Créez votre première commande'}
           />
         ) : (
-          <Table headers={['Référence', 'Client', 'Montant', 'Priorité', 'Livraison', 'Statut', 'Responsable', 'Actions']}>
+          <Table headers={['Numéro de commande', 'ID client', 'Montant', 'Priorité', 'Livraison', 'Statut', 'Responsable', 'Actions']}>
             {filtered.map((order) => {
               const days = daysUntil(order.expectedDeliveryDate);
+              const isTerminee = order.status === 'Terminée';
+              const completionDelay = isTerminee && order.updatedAt
+                ? Math.ceil((new Date(order.updatedAt).getTime() - new Date(order.expectedDeliveryDate).getTime()) / 86400000)
+                : null;
               return (
                 <tr key={order.id} className="table-row-hover">
                   <td className="py-3 px-4 font-mono text-xs text-brand-600 font-semibold">{order.id}</td>
                   <td className="py-3 px-4">
-                    <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{order.customer?.name || order.customerId}</p>
-                    <p className="text-xs text-slate-500">{order.customer?.country}</p>
+                    <p className="text-xs font-mono font-semibold text-brand-600">{order.customerId}</p>
+                    <p className="text-xs text-slate-400">{order.customer?.name}</p>
                   </td>
                   <td className="py-3 px-4 text-sm font-semibold text-slate-900 dark:text-slate-100">{formatCurrency(order.totalAmount)}</td>
                   <td className="py-3 px-4"><Badge className={getPriorityColor(order.priority)}>{order.priority}</Badge></td>
                   <td className="py-3 px-4">
                     <p className="text-xs text-slate-700 dark:text-slate-300">{formatDate(order.expectedDeliveryDate)}</p>
-                    <p className={`text-xs font-medium ${days < 0 ? 'text-red-500' : days <= 7 ? 'text-orange-500' : 'text-slate-400'}`}>
-                      {days < 0 ? `⚠ Retard ${Math.abs(days)}j` : `J-${days}`}
-                    </p>
+                    {isTerminee ? (
+                      completionDelay != null && completionDelay > 0
+                        ? <p className="text-xs font-medium text-red-500">Terminée en retard de {completionDelay}j</p>
+                        : <p className="text-xs font-medium text-green-600">Terminée à temps</p>
+                    ) : (
+                      <p className={`text-xs font-medium ${days < 0 ? 'text-red-500' : days <= 7 ? 'text-orange-500' : 'text-slate-400'}`}>
+                        {days < 0 ? `⚠ Retard ${Math.abs(days)}j` : `J-${days}`}
+                      </p>
+                    )}
                   </td>
                   <td className="py-3 px-4"><Badge className={getOrderStatusColor(order.status)}>{order.status}</Badge></td>
                   <td className="py-3 px-4 text-xs text-slate-500">{order.salesManager}</td>
@@ -248,7 +258,7 @@ function EditOrderForm({ order, onSuccess }: { order: Order; onSuccess: () => vo
       <div>
         <label className="label">Priorité</label>
         <select value={priority} onChange={(e) => setPriority(e.target.value)} className="input">
-          {['Normale', 'Haute', 'Urgente', 'Basse'].map(p => <option key={p}>{p}</option>)}
+          {['Normale', 'Standard', 'Haute', 'Urgente', 'Basse'].map(p => <option key={p}>{p}</option>)}
         </select>
       </div>
       <div className="flex gap-3 pt-2">
@@ -317,7 +327,7 @@ function CreateOrderForm({ onSuccess }: { onSuccess: () => void }) {
         <div>
           <label className="label">Priorité</label>
           <select value={form.priority} onChange={e => setForm({...form, priority: e.target.value})} className="input">
-            {['Normale', 'Haute', 'Urgente', 'Basse'].map(p => <option key={p}>{p}</option>)}
+            {['Normale', 'Standard', 'Haute', 'Urgente', 'Basse'].map(p => <option key={p}>{p}</option>)}
           </select>
         </div>
         <div>

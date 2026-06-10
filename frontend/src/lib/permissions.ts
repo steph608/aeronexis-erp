@@ -10,13 +10,13 @@ export const ROLE_PERMISSIONS: Record<Role, Permissions> = {
     dashboard: FULL_ACCESS, orders: FULL_ACCESS, manufacturing: FULL_ACCESS,
     materials: FULL_ACCESS, incidents: FULL_ACCESS, customers: FULL_ACCESS,
     products: FULL_ACCESS, users: FULL_ACCESS, shipments: FULL_ACCESS, audit: FULL_ACCESS,
-    ai: { delays: true, stock: true, quality: true, fullReport: true },
+    ai: { delays: true, stock: true, quality: true, margins: true, fullReport: true },
   },
   DIRECTOR: {
     dashboard: READ_ONLY, orders: READ_ONLY, manufacturing: READ_ONLY,
     materials: READ_ONLY, incidents: READ_ONLY, customers: READ_ONLY,
     products: READ_ONLY, users: READ_ONLY, shipments: READ_ONLY, audit: READ_ONLY,
-    ai: { delays: true, stock: true, quality: true, fullReport: true },
+    ai: { delays: true, stock: true, quality: true, margins: true, fullReport: true },
   },
   PRODUCTION_MANAGER: {
     dashboard: READ_ONLY, orders: READ_ONLY,
@@ -26,7 +26,7 @@ export const ROLE_PERMISSIONS: Record<Role, Permissions> = {
     customers: READ_ONLY,
     products: { canView: true, canCreate: true, canUpdate: true, canDelete: false },
     users: READ_ONLY, shipments: READ_ONLY, audit: READ_ONLY,
-    ai: { delays: false, stock: false, quality: true, fullReport: false },
+    ai: { delays: false, stock: false, quality: true, margins: false, fullReport: false },
   },
   LOGISTICS_MANAGER: {
     dashboard: READ_ONLY, orders: READ_ONLY, manufacturing: READ_ONLY,
@@ -34,22 +34,23 @@ export const ROLE_PERMISSIONS: Record<Role, Permissions> = {
     incidents: READ_ONLY, customers: READ_ONLY, products: READ_ONLY, users: READ_ONLY,
     shipments: { canView: true, canCreate: true, canUpdate: true, canDelete: false },
     audit: READ_ONLY,
-    ai: { delays: false, stock: true, quality: false, fullReport: false },
+    ai: { delays: false, stock: true, quality: false, margins: false, fullReport: false },
   },
   SALES_MANAGER: {
     dashboard: READ_ONLY, orders: READ_WRITE, manufacturing: READ_ONLY,
     materials: READ_ONLY, incidents: READ_ONLY,
     customers: { canView: true, canCreate: true, canUpdate: true, canDelete: false },
     products: READ_ONLY, users: READ_ONLY, shipments: READ_ONLY, audit: NO_ACCESS,
-    ai: { delays: true, stock: false, quality: false, fullReport: false },
+    ai: { delays: true, stock: false, quality: false, margins: true, fullReport: false },
   },
   OPERATOR: {
-    dashboard: NO_ACCESS, orders: READ_ONLY, manufacturing: READ_ONLY,
+    dashboard: NO_ACCESS, orders: READ_ONLY,
+    manufacturing: { canView: true, canCreate: false, canUpdate: true, canDelete: false },
     materials: READ_ONLY,
     incidents: { canView: true, canCreate: true, canUpdate: false, canDelete: false },
     customers: READ_ONLY, products: READ_ONLY, users: READ_ONLY,
     shipments: NO_ACCESS, audit: READ_ONLY,
-    ai: { delays: false, stock: false, quality: false, fullReport: false },
+    ai: { delays: false, stock: false, quality: false, margins: false, fullReport: false },
   },
 };
 

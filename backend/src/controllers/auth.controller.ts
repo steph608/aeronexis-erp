@@ -1,8 +1,11 @@
 import { Request, Response } from 'express';
 import { z } from 'zod';
+import bcrypt from 'bcryptjs';
 import { loginUser, registerUser, getUserById } from '../services/auth.service';
 import { AuthRequest } from '../middleware/auth.middleware';
 import { logAction } from '../services/audit.service';
+import { PrismaClient } from '@prisma/client';
+const prisma = new PrismaClient();
 
 // ================================
 // VALIDATION DES DONNÉES
@@ -127,6 +130,69 @@ export const getMe = async (req: AuthRequest, res: Response) => {
       success: false,
       message: error.message,
     });
+  }
+};
+
+// ================================
+// MODIFIER PROFIL
+// ================================
+export const updateProfile = async (req: AuthRequest, res: Response) => {
+  try {
+    const { firstName, lastName } = z.object({
+      firstName: z.string().min(1),
+      lastName:  z.string(),
+    }).parse(req.body);
+
+    const updated = await prisma.user.update({
+      where: { id: req.user!.id },
+      data: { firstName, lastName },
+      select: { id: true, email: true, firstName: true, lastName: true, role: true, isActive: true },
+    });
+
+    await logAction({
+      userId: req.user!.id, userEmail: req.user!.email,
+      action: 'UPDATE', module: 'auth',
+      description: `Profil mis à jour : ${firstName} ${lastName}`,
+      ipAddress: req.ip,
+    });
+
+    res.status(200).json({ success: true, data: { ...updated, site: (req.user as any).site ?? 'Site Toulouse' } });
+  } catch (error: any) {
+    if (error.name === 'ZodError') return res.status(400).json({ success: false, message: 'Données invalides' });
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ================================
+// CHANGER MOT DE PASSE
+// ================================
+export const changePassword = async (req: AuthRequest, res: Response) => {
+  try {
+    const { currentPassword, newPassword } = z.object({
+      currentPassword: z.string().min(1),
+      newPassword:     z.string().min(6, 'Minimum 6 caractères'),
+    }).parse(req.body);
+
+    const user = await prisma.user.findUnique({ where: { id: req.user!.id } });
+    if (!user) return res.status(404).json({ success: false, message: 'Utilisateur introuvable' });
+
+    const valid = await bcrypt.compare(currentPassword, user.password);
+    if (!valid) return res.status(400).json({ success: false, message: 'Mot de passe actuel incorrect' });
+
+    const hashed = await bcrypt.hash(newPassword, 12);
+    await prisma.user.update({ where: { id: req.user!.id }, data: { password: hashed } });
+
+    await logAction({
+      userId: req.user!.id, userEmail: req.user!.email,
+      action: 'UPDATE', module: 'auth',
+      description: 'Mot de passe modifié',
+      ipAddress: req.ip,
+    });
+
+    res.status(200).json({ success: true, message: 'Mot de passe modifié avec succès' });
+  } catch (error: any) {
+    if (error.name === 'ZodError') return res.status(400).json({ success: false, message: error.errors[0]?.message || 'Données invalides' });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 

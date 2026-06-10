@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { Topbar } from './Topbar';
+import { ChatWidget } from '../ai/ChatWidget';
 
 export function AppLayout() {
   const [collapsed, setCollapsed] = useState(false);
@@ -23,6 +24,7 @@ export function AppLayout() {
           </div>
         </main>
       </div>
+      <ChatWidget />
     </div>
   );
 }

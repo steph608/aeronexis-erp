@@ -8,6 +8,8 @@ export interface AuthRequest extends Request {
     id: number;
     email: string;
     role: string;
+    firstName: string;
+    lastName: string;
   };
 }
 
@@ -38,6 +40,8 @@ export const authenticate = (
       id: number;
       email: string;
       role: string;
+      firstName: string;
+      lastName: string;
     };
 
     // Ajouter l'utilisateur dans la requête

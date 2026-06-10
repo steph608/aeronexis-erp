@@ -23,6 +23,7 @@ model User {
   firstName String
   lastName  String
   role      Role     @default(OPERATOR)
+  site      String   @default("Site Toulouse")
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -72,9 +73,11 @@ model Order {
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
 
-  customer   Customer    @relation(fields: [customerId], references: [id])
-  orderLines OrderLine[]
-  shipments Shipment[]
+  customer              Customer             @relation(fields: [customerId], references: [id])
+  orderLines            OrderLine[]
+  shipments             Shipment[]
+  manufacturingOrders   ManufacturingOrder[]
+  qualityIncidents      QualityIncident[]
 }
 
 model OrderLine {
@@ -112,11 +115,13 @@ model ManufacturingOrder {
   status          String
   operatorId      Int?
   site            String
+  orderId         String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
   product          Product           @relation(fields: [productId], references: [id])
   operator         User?             @relation(fields: [operatorId], references: [id])
+  order            Order?            @relation(fields: [orderId], references: [id])
   qualityIncidents QualityIncident[]
 }
 
@@ -129,11 +134,26 @@ model QualityIncident {
   status             String
   responsibleId      Int?
   correctiveAction   String
+  orderId            String?
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
   responsible        User?              @relation(fields: [responsibleId], references: [id])
   manufacturingOrder ManufacturingOrder @relation(fields: [batchNumber], references: [batchNumber])
+  order              Order?             @relation(fields: [orderId], references: [id])
+  comments           IncidentComment[]
+}
+
+model IncidentComment {
+  id         Int      @id @default(autoincrement())
+  incidentId String
+  userId     Int?
+  userEmail  String
+  userName   String
+  content    String
+  createdAt  DateTime @default(now())
+
+  incident QualityIncident @relation(fields: [incidentId], references: [id])
 }
 model AuditLog {
   id          Int      @id @default(autoincrement())
@@ -166,13 +186,15 @@ model Shipment {
 }
 
 model Notification {
-  id        Int      @id @default(autoincrement())
-  userId    Int?
-  title     String
-  message   String
-  type      String
-  isRead    Boolean  @default(false)
-  createdAt DateTime @default(now())
+  id         Int      @id @default(autoincrement())
+  userId     Int?
+  title      String
+  message    String
+  type       String
+  isRead     Boolean  @default(false)
+  note       String?
+  materialId String?
+  createdAt  DateTime @default(now())
 
   user User? @relation(fields: [userId], references: [id])
 }

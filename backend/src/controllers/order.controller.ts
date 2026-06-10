@@ -8,6 +8,7 @@ import {
   updateOrder,
   deleteOrder,
   getOrderStats,
+  getManufacturingOrdersForOrder,
 } from '../services/order.service';
 import { logAction } from '../services/audit.service';
 
@@ -21,7 +22,7 @@ const createOrderSchema = z.object({
   expectedDeliveryDate: z.string().transform(str => new Date(str)),
   status: z.string().default('Planifiée'),
   totalAmount: z.number().min(0),
-  priority: z.enum(['Normale', 'Haute', 'Urgente']),
+  priority: z.enum(['Normale', 'Haute', 'Urgente', 'Standard', 'Basse']),
   salesManager: z.string().min(1),
   orderLines: z.array(z.object({
     id: z.string(),
@@ -35,7 +36,7 @@ const createOrderSchema = z.object({
 
 const updateOrderSchema = z.object({
   status: z.string().optional(),
-  priority: z.enum(['Normale', 'Haute', 'Urgente']).optional(),
+  priority: z.enum(['Normale', 'Haute', 'Urgente', 'Standard', 'Basse']).optional(),
   expectedDeliveryDate: z.string().transform(str => new Date(str)).optional(),
   totalAmount: z.number().min(0).optional(),
 });
@@ -124,12 +125,16 @@ export const updateOrderHandler = async (req: AuthRequest, res: Response) => {
     const order = await updateOrder(id, validatedData);
 
     // Enregistrer l'action
+    const changes: string[] = [];
+    if (validatedData.status)   changes.push(`Statut → ${validatedData.status}`);
+    if (validatedData.priority) changes.push(`Priorité → ${validatedData.priority}`);
+    if (validatedData.totalAmount !== undefined) changes.push(`Montant → ${validatedData.totalAmount.toLocaleString('fr-FR')} €`);
     await logAction({
       userId: req.user!.id,
       userEmail: req.user!.email,
       action: 'UPDATE',
       module: 'orders',
-      description: `Modification commande ${id} — Nouveau statut: ${validatedData.status || 'modifié'}`,
+      description: `Modification commande ${id} — ${changes.join(' | ') || 'mise à jour'}`,
       ipAddress: req.ip,
     });
 
@@ -180,6 +185,19 @@ export const deleteOrderHandler = async (req: AuthRequest, res: Response) => {
       success: false,
       message: error.message,
     });
+  }
+};
+
+// ================================
+// OFs LIÉS À UNE COMMANDE
+// ================================
+export const getOrderManufacturing = async (req: AuthRequest, res: Response) => {
+  try {
+    const id = req.params['id'] as string;
+    const ofs = await getManufacturingOrdersForOrder(id);
+    res.status(200).json({ success: true, data: ofs });
+  } catch (error: any) {
+    res.status(404).json({ success: false, message: error.message });
   }
 };
 

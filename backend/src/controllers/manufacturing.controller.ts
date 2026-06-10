@@ -22,13 +22,14 @@ const createSchema = z.object({
   launchDate: z.string().transform(str => new Date(str)),
   expectedEndDate: z.string().transform(str => new Date(str)),
   status: z.string().default('Planifié'),
-  operatorId: z.coerce.number().optional(),
+  operatorId: z.number().int().positive().nullable().optional(),
   site: z.string().min(1),
+  orderId: z.string().nullable().optional(),
 });
 
 const updateSchema = z.object({
   status: z.string().optional(),
-  operatorId: z.coerce.number().optional(),
+  operatorId: z.number().int().positive().nullable().optional(),
   expectedEndDate: z.string().transform(str => new Date(str)).optional(),
   site: z.string().optional(),
 });
@@ -146,15 +147,33 @@ export const updateOrder = async (req: AuthRequest, res: Response) => {
   try {
     const id = req.params['id'] as string;
     const validatedData = updateSchema.parse(req.body);
+
+    // Lire l'état avant modification
+    const before = await getManufacturingOrderById(id);
     const order = await updateManufacturingOrder(id, validatedData);
 
-    // Enregistrer l'action
+    // Construire les changements avec avant → après
+    const changes: string[] = [];
+    if (validatedData.status && validatedData.status !== before.status)
+      changes.push(`Statut : ${before.status} → ${validatedData.status}`);
+    if (validatedData.operatorId !== undefined) {
+      const beforeOp = (before as any).operator
+        ? `${(before as any).operator.firstName} ${(before as any).operator.lastName}`
+        : 'Non assigné';
+      const afterOp = (order as any).operator
+        ? `${(order as any).operator.firstName} ${(order as any).operator.lastName}`
+        : 'Non assigné';
+      if (beforeOp !== afterOp) changes.push(`Opérateur : ${beforeOp} → ${afterOp}`);
+    }
+    if (validatedData.site && validatedData.site !== before.site)
+      changes.push(`Site : ${before.site} → ${validatedData.site}`);
+
     await logAction({
       userId: req.user!.id,
       userEmail: req.user!.email,
       action: 'UPDATE',
       module: 'manufacturing',
-      description: `Modification OF ${id} — Lot: ${order.batchNumber} — Nouveau statut: ${validatedData.status || 'modifié'}`,
+      description: `Modification OF ${id} — Lot: ${order.batchNumber} — ${changes.join(' | ') || 'mise à jour'}`,
       ipAddress: req.ip,
     });
 

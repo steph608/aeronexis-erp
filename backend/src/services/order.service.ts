@@ -135,6 +135,39 @@ export const deleteOrder = async (id: string) => {
 };
 
 // ================================
+// OFs LIÉS À UNE COMMANDE
+// ================================
+export const getManufacturingOrdersForOrder = async (orderId: string) => {
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    include: {
+      orderLines: { select: { productId: true } },
+    },
+  });
+  if (!order) throw new Error('Commande non trouvée');
+
+  const productIds = order.orderLines.map(l => l.productId);
+
+  // OFs explicitement liés via orderId OU dont le produit est dans les lignes de commande
+  const ofs = await prisma.manufacturingOrder.findMany({
+    where: {
+      OR: [
+        { orderId },
+        { productId: { in: productIds } },
+      ],
+    },
+    include: {
+      product: { select: { id: true, description: true, category: true, certification: true, unitPrice: true } },
+      operator: { select: { id: true, firstName: true, lastName: true } },
+      qualityIncidents: { select: { id: true, anomalyType: true, severity: true, status: true } },
+    },
+    orderBy: { createdAt: 'desc' },
+  });
+
+  return ofs;
+};
+
+// ================================
 // STATISTIQUES
 // ================================
 export const getOrderStats = async () => {

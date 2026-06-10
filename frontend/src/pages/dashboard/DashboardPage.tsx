@@ -1,35 +1,26 @@
 import { useEffect, useState } from 'react';
 import {
-  ShoppingCart, Factory, AlertTriangle, Package2,
-  TrendingUp, CheckCircle2,
-  ArrowRight, BarChart3
+  ShoppingCart, Factory, AlertTriangle, Truck,
+  TrendingUp, CheckCircle2, Clock,
+  ArrowRight, BarChart3, Download
 } from 'lucide-react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, PieChart, Pie, Cell
+  ResponsiveContainer, PieChart, Pie, Cell,
+  LineChart, Line, Legend
 } from 'recharts';
+import * as XLSX from 'xlsx';
 import { dashboardAPI } from '../../services/api';
 import type { DashboardData } from '../../types';
 import { StatCard, PageLoader, ErrorState, Badge } from '../../components/ui';
-import { useAuthStore } from '../../store/authStore';
 import {
   formatCurrency, formatDate, getOrderStatusColor,
   getOFStatusColor, getIncidentSeverityColor, getPriorityColor, daysUntil
 } from '../../utils';
 import { NavLink } from 'react-router-dom';
 
-// Simulated chart data (in production would come from API)
-const monthlyData = [
-  { name: 'Oct', commandes: 8, ca: 420000 },
-  { name: 'Nov', commandes: 11, ca: 560000 },
-  { name: 'Déc', commandes: 7, ca: 380000 },
-  { name: 'Jan', commandes: 14, ca: 780000 },
-  { name: 'Fév', commandes: 12, ca: 920000 },
-  { name: 'Mar', commandes: 9, ca: 650000 },
-];
 
 export function DashboardPage() {
-  const { user } = useAuthStore();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -55,6 +46,23 @@ export function DashboardPage() {
 
   const { kpis } = data;
 
+  const monthlyStats = (data as any).monthlyStats ?? [];
+  const last12 = [...monthlyStats].slice(-12);
+
+  const exportKPI = () => {
+    const ws = XLSX.utils.json_to_sheet(last12.map((m: any) => ({
+      'Période':        `${m.name} ${m.year}`,
+      'Taux Rendement': m.yieldRate != null ? `${m.yieldRate}%` : '—',
+      'Retards Livr.':  m.deliveryDelays,
+      'Inc. Critiques': m.criticalIncidents,
+      'CA Réalisé':     m.revenue,
+      'Marge Brute':    m.grossMarginPct != null ? `${m.grossMarginPct}%` : '—',
+    })));
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Données');
+    XLSX.writeFile(wb, `kpi_${new Date().toISOString().split('T')[0]}.xlsx`);
+  };
+
   // Pie chart data for order status
   const orderStatusData = [
     { name: 'En production', value: kpis.commandes.enProduction, color: '#2563eb' },
@@ -64,23 +72,14 @@ export function DashboardPage() {
 
   return (
     <div className="space-y-6 page-enter">
-      {/* Welcome header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-slate-900 dark:text-white font-display">
-            Bonjour, {user?.firstName} 👋
-          </h1>
-          <p className="text-sm text-slate-500 mt-0.5">
-            Vue d'ensemble de la plateforme AERONEXIS · {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
-          </p>
-        </div>
+      <div className="flex justify-end">
         <button onClick={load} className="btn-secondary text-xs">
           Actualiser
         </button>
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
         <StatCard
           title="Chiffre d'affaires"
           value={formatCurrency(kpis.commandes.chiffreAffaires)}
@@ -96,6 +95,13 @@ export function DashboardPage() {
           color="cyan"
         />
         <StatCard
+          title="Commandes en retard"
+          value={(kpis.commandes as any).enRetard ?? 0}
+          subtitle="Livraison dépassée"
+          icon={<Clock size={18} />}
+          color={(kpis.commandes as any).enRetard > 0 ? 'red' : 'green'}
+        />
+        <StatCard
           title="OFs actifs"
           value={kpis.production.enCours}
           subtitle={`Rendement ${kpis.production.tauxRendement}%`}
@@ -105,16 +111,16 @@ export function DashboardPage() {
         <StatCard
           title="Incidents critiques"
           value={kpis.incidents.critiques}
-          subtitle={`Taux résolution ${kpis.incidents.tauxResolution}%`}
+          subtitle={`Résolution ${kpis.incidents.tauxResolution}%`}
           icon={<AlertTriangle size={18} />}
           color={kpis.incidents.critiques > 0 ? 'red' : 'green'}
         />
         <StatCard
-          title="Alertes stock"
-          value={kpis.stock.alertesRupture}
-          subtitle={`${kpis.stock.totalMatieres} matières`}
-          icon={<Package2 size={18} />}
-          color={kpis.stock.alertesRupture > 0 ? 'orange' : 'green'}
+          title="Expéditions"
+          value={(kpis as any).expeditions?.enTransit ?? 0}
+          subtitle={`${(kpis as any).expeditions?.aEnvoyer ?? 0} à envoyer`}
+          icon={<Truck size={18} />}
+          color={(kpis as any).expeditions?.aEnvoyer > 0 ? 'orange' : 'green'}
         />
       </div>
 
@@ -130,7 +136,7 @@ export function DashboardPage() {
             <BarChart3 size={18} className="text-slate-400" />
           </div>
           <ResponsiveContainer width="100%" height={180}>
-            <AreaChart data={monthlyData} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+            <AreaChart data={last12} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
               <defs>
                 <linearGradient id="caGradient" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#2563eb" stopOpacity={0.15} />
@@ -205,6 +211,10 @@ export function DashboardPage() {
           <div className="divide-y divide-slate-100 dark:divide-slate-700/50">
             {data.dernieresCommandes.slice(0, 5).map((order) => {
               const days = daysUntil(order.expectedDeliveryDate);
+              const isTerminee = order.status === 'Terminée';
+              const completionDelay = isTerminee && (order as any).updatedAt
+                ? Math.ceil((new Date((order as any).updatedAt).getTime() - new Date(order.expectedDeliveryDate).getTime()) / 86400000)
+                : null;
               return (
                 <div key={order.id} className="flex items-center gap-4 px-5 py-3 table-row-hover">
                   <div className="min-w-0 flex-1">
@@ -213,9 +223,15 @@ export function DashboardPage() {
                   </div>
                   <div className="text-right hidden sm:block">
                     <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{formatCurrency(order.totalAmount)}</p>
-                    <p className={`text-xs ${days < 0 ? 'text-red-500' : days <= 7 ? 'text-orange-500' : 'text-slate-400'}`}>
-                      {days < 0 ? `Retard ${Math.abs(days)}j` : `J-${days}`}
-                    </p>
+                    {isTerminee ? (
+                      completionDelay != null && completionDelay > 0
+                        ? <p className="text-xs text-red-500">En retard de {completionDelay}j</p>
+                        : <p className="text-xs text-green-600">À temps</p>
+                    ) : (
+                      <p className={`text-xs ${days < 0 ? 'text-red-500' : days <= 7 ? 'text-orange-500' : 'text-slate-400'}`}>
+                        {days < 0 ? `Retard ${Math.abs(days)}j` : `J-${days}`}
+                      </p>
+                    )}
                   </div>
                   <div className="flex flex-col gap-1 items-end">
                     <Badge className={getOrderStatusColor(order.status)}>{order.status}</Badge>
@@ -288,6 +304,111 @@ export function DashboardPage() {
           </table>
         </div>
       </div>
+
+      {/* KPI History */}
+      {last12.length > 0 && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+              Tableau de bord KPI — 12 derniers mois
+            </h2>
+            <button onClick={exportKPI} className="btn-secondary text-xs flex items-center gap-1.5">
+              <Download size={13} /> Exporter Excel
+            </button>
+          </div>
+
+          {/* KPI charts */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="card p-5">
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">CA Réalisé (€)</p>
+              <ResponsiveContainer width="100%" height={160}>
+                <AreaChart data={last12} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+                  <defs>
+                    <linearGradient id="kpiCaGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#2563eb" stopOpacity={0.15} />
+                      <stop offset="95%" stopColor="#2563eb" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false}
+                    tickFormatter={(v) => v >= 1000000 ? `${(v/1000000).toFixed(1)}M` : `${(v/1000).toFixed(0)}k`} />
+                  <Tooltip
+                    contentStyle={{ background: '#1e293b', border: 'none', borderRadius: 8, fontSize: 11 }}
+                    formatter={(v: any) => [formatCurrency(v), 'CA']}
+                  />
+                  <Area type="monotone" dataKey="revenue" stroke="#2563eb" strokeWidth={2} fill="url(#kpiCaGrad)" name="CA" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div className="card p-5">
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Taux de rendement (%)</p>
+              <ResponsiveContainer width="100%" height={160}>
+                <LineChart data={last12} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                  <YAxis domain={[75, 100]} tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false}
+                    tickFormatter={(v) => `${v}%`} />
+                  <Tooltip
+                    contentStyle={{ background: '#1e293b', border: 'none', borderRadius: 8, fontSize: 11 }}
+                    formatter={(v: any) => [`${v}%`, 'Rendement']}
+                  />
+                  <Legend wrapperStyle={{ fontSize: 11 }} />
+                  <Line type="monotone" dataKey="yieldRate" stroke="#10b981" strokeWidth={2} dot={{ r: 3 }} name="Taux rendement" />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* KPI Table */}
+          <div className="card overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="border-b border-slate-100 dark:border-slate-700">
+                  {['Période', 'Taux Rendement', 'Retards Livr.', 'Inc. Critiques', 'CA Réalisé', 'Marge Brute'].map(h => (
+                    <th key={h} className="text-left py-2.5 px-4 font-semibold text-slate-500 uppercase tracking-wide whitespace-nowrap">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50">
+                {last12.map((m: any) => (
+                  <tr key={`${m.year}-${m.month}`} className="table-row-hover">
+                    <td className="py-2.5 px-4 font-medium text-slate-700 dark:text-slate-300 whitespace-nowrap">{m.name} {m.year}</td>
+                    <td className="py-2.5 px-4">
+                      {m.yieldRate != null ? (
+                        <span className={`font-semibold ${m.yieldRate >= 90 ? 'text-green-600' : m.yieldRate >= 85 ? 'text-amber-600' : 'text-red-600'}`}>
+                          {m.yieldRate}%
+                        </span>
+                      ) : <span className="text-slate-400">—</span>}
+                    </td>
+                    <td className="py-2.5 px-4">
+                      <span className={`font-semibold ${m.deliveryDelays === 0 ? 'text-green-600' : m.deliveryDelays <= 2 ? 'text-amber-600' : 'text-red-600'}`}>
+                        {m.deliveryDelays}
+                      </span>
+                    </td>
+                    <td className="py-2.5 px-4">
+                      <span className={`font-semibold ${m.criticalIncidents === 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {m.criticalIncidents}
+                      </span>
+                    </td>
+                    <td className="py-2.5 px-4 font-semibold text-slate-900 dark:text-slate-100 whitespace-nowrap">
+                      {m.revenue > 0 ? formatCurrency(m.revenue) : <span className="text-slate-400">—</span>}
+                    </td>
+                    <td className="py-2.5 px-4">
+                      {m.grossMarginPct != null ? (
+                        <span className={`font-semibold ${m.grossMarginPct >= 38 ? 'text-green-600' : 'text-amber-600'}`}>
+                          {m.grossMarginPct}%
+                        </span>
+                      ) : <span className="text-slate-400">—</span>}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

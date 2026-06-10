@@ -93,26 +93,26 @@ export function UsersPage() {
           <Table headers={['', 'Nom complet', 'Email', 'Rôle', 'Statut', 'Créé le', 'Actions']}>
             {filtered.map((u) => (
               <tr key={u.id} className="table-row-hover">
-                <td className="py-3 px-4">
+                <td className="py-2 px-3">
                   <div className="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center text-white text-xs font-bold">
                     {u.firstName[0]}{u.lastName[0]}
                   </div>
                 </td>
-                <td className="py-3 px-4">
+                <td className="py-2 px-3">
                   <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{u.firstName} {u.lastName}</p>
                   {u.id === currentUser?.id && <span className="text-[10px] text-brand-500 font-medium">Vous</span>}
                 </td>
-                <td className="py-3 px-4 text-xs text-slate-500 font-mono">{u.email}</td>
-                <td className="py-3 px-4">
+                <td className="py-2 px-3 text-xs text-slate-500 font-mono">{u.email}</td>
+                <td className="py-2 px-3">
                   <Badge className={ROLE_COLORS[u.role as Role]}>{ROLE_LABELS[u.role as Role]}</Badge>
                 </td>
-                <td className="py-3 px-4">
+                <td className="py-2 px-3">
                   <Badge className={u.isActive ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'} dot>
                     {u.isActive ? 'Actif' : 'Inactif'}
                   </Badge>
                 </td>
-                <td className="py-3 px-4 text-xs text-slate-500">{u.createdAt ? formatDate(u.createdAt) : '—'}</td>
-                <td className="py-3 px-4">
+                <td className="py-2 px-3 text-xs text-slate-500">{u.createdAt ? formatDate(u.createdAt) : '—'}</td>
+                <td className="py-2 px-3">
                   <div className="flex items-center gap-1">
                     <PermissionGuard allowed={!!perms?.canUpdate}>
                       <button onClick={() => { setSelected(u); setShowEdit(true); }} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-amber-50 text-slate-400 hover:text-amber-600 transition-colors">

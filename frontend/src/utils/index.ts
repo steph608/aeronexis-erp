@@ -53,10 +53,10 @@ export function daysUntil(dateStr: string): number {
 export function getOrderStatusColor(status: string): string {
   const map: Record<string, string> = {
     'En production': 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
-    'Planifiée': 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300',
-    'Terminée': 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
-    'Annulée': 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300',
-    'Livrée': 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300',
+    'Planifiée':     'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300',
+    'Terminée':      'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
+    'Annulée':       'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300',
+    'Livrée':        'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300',
   };
   return map[status] || 'bg-slate-100 text-slate-700';
 }
@@ -92,10 +92,11 @@ export function getIncidentStatusColor(status: string): string {
 
 export function getPriorityColor(priority: string): string {
   const map: Record<string, string> = {
-    'Urgente': 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
-    'Haute': 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
-    'Normale': 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
-    'Basse': 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400',
+    'Urgente':  'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
+    'Haute':    'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
+    'Normale':  'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
+    'Standard': 'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300',
+    'Basse':    'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400',
   };
   return map[priority] || 'bg-slate-100 text-slate-600';
 }

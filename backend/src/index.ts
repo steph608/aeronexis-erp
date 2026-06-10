@@ -14,6 +14,8 @@ import productRoutes from './routes/product.routes';
 import dashboardRoutes from './routes/dashboard.routes';
 import aiRoutes from './routes/ai.routes';
 import auditRoutes from './routes/audit.routes';
+import shipmentRoutes from './routes/shipment.routes';
+import notificationRoutes from './routes/notification.routes';
 const app = express();
 
 // ==================
@@ -41,6 +43,8 @@ app.use('/api/customers', customerRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/shipments', shipmentRoutes);
+app.use('/api/notifications', notificationRoutes);
 // Route de test
 app.get('/', (req, res) => {
   res.json({

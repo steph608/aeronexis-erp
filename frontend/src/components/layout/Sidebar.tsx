@@ -2,13 +2,11 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, ShoppingCart, Factory, Package2,
   AlertTriangle, Users2, BoxSelect, Users, Brain,
-  LogOut, ChevronLeft, ChevronRight,
-  Plane,Truck, ClipboardList,
+  LogOut, ChevronLeft, ChevronRight, Truck, ClipboardList,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
-import { ROLE_LABELS, ROLE_COLORS } from '../../lib/permissions';
+import { ROLE_LABELS } from '../../lib/permissions';
 import type { Role } from '../../types';
-import { Badge } from '../ui';
 import { cn } from '../../utils';
 
 interface NavItem {
@@ -16,22 +14,28 @@ interface NavItem {
   label: string;
   icon: React.ReactNode;
   path: string;
-  badge?: string;
 }
 
-const ALL_NAV_ITEMS: NavItem[] = [
-  { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={18} />, path: '/dashboard' },
-  { id: 'orders', label: 'Commandes', icon: <ShoppingCart size={18} />, path: '/orders' },
-  { id: 'manufacturing', label: 'Production', icon: <Factory size={18} />, path: '/manufacturing' },
-  { id: 'materials', label: 'Stock & Matières', icon: <Package2 size={18} />, path: '/materials' },
-  { id: 'incidents', label: 'Qualité & Incidents', icon: <AlertTriangle size={18} />, path: '/incidents' },
-  { id: 'customers', label: 'Clients', icon: <Users2 size={18} />, path: '/customers' },
-  { id: 'products', label: 'Catalogue Produits', icon: <BoxSelect size={18} />, path: '/products' },
-  { id: 'users', label: 'Utilisateurs', icon: <Users size={18} />, path: '/users' },
-  { id: 'shipments', label: 'Expéditions', icon: <Truck size={18} />, path: '/shipments' },
-  { id: 'audit', label: 'Historique', icon: <ClipboardList size={18} />, path: '/audit' },
-  { id: 'ai', label: 'Intelligence IA', icon: <Brain size={18} />, path: '/ai' },
+const NAV_ITEMS: NavItem[] = [
+  { id: 'dashboard',     label: 'Tableau de bord',    icon: <LayoutDashboard size={16} />, path: '/dashboard' },
+  { id: 'orders',        label: 'Commandes',           icon: <ShoppingCart size={16} />,    path: '/orders' },
+  { id: 'manufacturing', label: 'Production',          icon: <Factory size={16} />,         path: '/manufacturing' },
+  { id: 'materials',     label: 'Stock & Matières',    icon: <Package2 size={16} />,        path: '/materials' },
+  { id: 'incidents',     label: 'Qualité & Incidents', icon: <AlertTriangle size={16} />,   path: '/incidents' },
+  { id: 'customers',     label: 'Clients',             icon: <Users2 size={16} />,          path: '/customers' },
+  { id: 'products',      label: 'Catalogue Produits',  icon: <BoxSelect size={16} />,       path: '/products' },
+  { id: 'users',         label: 'Utilisateurs',        icon: <Users size={16} />,           path: '/users' },
+  { id: 'shipments',     label: 'Expéditions',         icon: <Truck size={16} />,           path: '/shipments' },
+  { id: 'audit',         label: 'Historique',          icon: <ClipboardList size={16} />,   path: '/audit' },
+  { id: 'ai',            label: 'Intelligence IA',     icon: <Brain size={16} />,           path: '/ai' },
 ];
+
+const NAV_GROUPS = [
+  { label: null,          ids: ['dashboard', 'orders', 'manufacturing'] },
+  { label: 'Opérations',  ids: ['materials', 'incidents', 'customers', 'products'] },
+  { label: 'Système',     ids: ['users', 'shipments', 'audit', 'ai'] },
+];
+
 interface SidebarProps {
   collapsed: boolean;
   setCollapsed: (v: boolean) => void;
@@ -43,87 +47,92 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }: 
   const { user, accessibleModules, logout } = useAuthStore();
   const navigate = useNavigate();
 
-  const visibleItems = ALL_NAV_ITEMS.filter(item => accessibleModules.includes(item.id));
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
+  const handleLogout = () => { logout(); navigate('/login'); };
 
   const sidebarContent = (
-    <div className="flex flex-col h-full">
+    <div
+      className="flex flex-col h-full"
+      style={{ background: 'linear-gradient(180deg, #1e293b 0%, #0f172a 100%)' }}
+    >
       {/* Logo */}
-      <div className={cn('flex items-center px-4 py-5 border-b border-slate-200 dark:border-slate-700', collapsed ? 'justify-center' : 'gap-3')}>
-        <div className="w-8 h-8 rounded-xl bg-brand-600 flex items-center justify-center flex-shrink-0">
-          <Plane size={16} className="text-white rotate-45" />
+      <div className={cn(
+        'flex items-center px-4 py-5',
+        'border-b border-white/15',
+        collapsed ? 'justify-center' : 'gap-3'
+      )}>
+        <div className="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center flex-shrink-0 shadow-lg shadow-brand-600/30">
+          <span className="text-white font-bold text-xs font-display">AX</span>
         </div>
         {!collapsed && (
           <div>
-            <p className="text-sm font-bold text-slate-900 dark:text-white font-display tracking-tight">AERONEXIS</p>
-            <p className="text-[10px] text-slate-500 uppercase tracking-widest">ERP Platform</p>
+            <p className="text-sm font-bold text-white font-display tracking-tight leading-none">AERONEXIS</p>
+            <p className="text-[9px] text-slate-400 uppercase tracking-widest mt-0.5">
+              {user ? ROLE_LABELS[user.role as Role] : 'ERP'}
+            </p>
           </div>
         )}
       </div>
 
-      {/* User info */}
-      {!collapsed && user && (
-        <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700/50">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-brand-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-              {user.firstName[0]}{user.lastName[0]}
+      {/* Navigation groupée */}
+      <nav className="flex-1 px-3 py-3 overflow-y-auto space-y-4">
+        {NAV_GROUPS.map((group, gi) => {
+          const items = NAV_ITEMS.filter(
+            item => group.ids.includes(item.id) && accessibleModules.includes(item.id)
+          );
+          if (items.length === 0) return null;
+          return (
+            <div key={gi}>
+              {group.label && !collapsed && (
+                <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest px-3 mb-1.5">
+                  {group.label}
+                </p>
+              )}
+              <div className="space-y-0.5">
+                {items.map(item => (
+                  <NavLink
+                    key={item.id}
+                    to={item.path}
+                    onClick={() => setMobileOpen(false)}
+                    className={({ isActive }) => cn(
+                      'flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-150',
+                      isActive
+                        ? 'bg-brand-600/30 text-white border border-brand-500/40 shadow-sm'
+                        : 'text-slate-400 hover:bg-white/6 hover:text-white',
+                      collapsed && 'justify-center px-2'
+                    )}
+                  >
+                    <span className="flex-shrink-0">{item.icon}</span>
+                    {!collapsed && <span className="truncate text-[13px] font-medium">{item.label}</span>}
+                  </NavLink>
+                ))}
+              </div>
             </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">{user.firstName} {user.lastName}</p>
-              <Badge className={cn('text-[10px] mt-0.5', ROLE_COLORS[user.role as Role])}>
-                {ROLE_LABELS[user.role as Role]}
-              </Badge>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Navigation */}
-      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-        {visibleItems.map((item) => (
-          <NavLink
-            key={item.id}
-            to={item.path}
-            onClick={() => setMobileOpen(false)}
-            className={({ isActive }) => cn(
-              'sidebar-link',
-              isActive ? 'sidebar-link-active' : 'sidebar-link-inactive',
-              collapsed && 'justify-center px-2'
-            )}
-          >
-            <span className="flex-shrink-0">{item.icon}</span>
-            {!collapsed && <span className="truncate">{item.label}</span>}
-            {!collapsed && item.badge && (
-              <span className="ml-auto bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
-                {item.badge}
-              </span>
-            )}
-          </NavLink>
-        ))}
+          );
+        })}
       </nav>
 
-      {/* Bottom actions */}
-      <div className="px-3 py-3 border-t border-slate-200 dark:border-slate-700 space-y-0.5">
+      {/* Bas */}
+      <div className="px-3 py-3 border-t border-white/8 space-y-0.5">
         <button
           onClick={handleLogout}
-          className={cn('sidebar-link sidebar-link-inactive w-full text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600',
+          className={cn(
+            'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium w-full transition-all duration-150',
+            'text-slate-500 hover:bg-red-500/15 hover:text-red-400',
             collapsed && 'justify-center px-2'
           )}
         >
-          <LogOut size={18} />
-          {!collapsed && <span>Déconnexion</span>}
+          <LogOut size={16} />
+          {!collapsed && <span className="text-[13px]">Déconnexion</span>}
         </button>
-
-        {/* Collapse toggle (desktop) */}
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="hidden lg:flex sidebar-link sidebar-link-inactive w-full"
+          className={cn(
+            'hidden lg:flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium w-full transition-all',
+            'text-slate-600 hover:bg-white/6 hover:text-slate-300',
+            collapsed && 'justify-center px-2'
+          )}
         >
-          {collapsed ? <ChevronRight size={18} /> : <><ChevronLeft size={18} /><span>Réduire</span></>}
+          {collapsed ? <ChevronRight size={15} /> : <><ChevronLeft size={15} /><span>Réduire</span></>}
         </button>
       </div>
     </div>
@@ -131,19 +140,19 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }: 
 
   return (
     <>
-      {/* Desktop sidebar */}
       <aside className={cn(
-        'hidden lg:flex flex-col bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-700 transition-all duration-300 flex-shrink-0',
-        collapsed ? 'w-16' : 'w-64'
-      )}>
+        'hidden lg:flex flex-col border-r border-white/15 transition-all duration-300 flex-shrink-0',
+        collapsed ? 'w-16' : 'w-60'
+      )}
+        style={{ background: 'linear-gradient(180deg, #1e293b 0%, #0f172a 100%)' }}
+      >
         {sidebarContent}
       </aside>
 
-      {/* Mobile overlay */}
       {mobileOpen && (
         <div className="lg:hidden fixed inset-0 z-50 flex">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setMobileOpen(false)} />
-          <aside className="relative w-72 bg-white dark:bg-slate-900 flex flex-col animate-slide-in">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
+          <aside className="relative w-64 flex flex-col animate-slide-in shadow-2xl border-r border-white/15" style={{ background: 'linear-gradient(180deg, #1e293b 0%, #0f172a 100%)' }}>
             {sidebarContent}
           </aside>
         </div>

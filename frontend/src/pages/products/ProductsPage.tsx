@@ -104,16 +104,16 @@ export function ProductsPage() {
           <Table headers={['Référence', 'Description', 'Catégorie', 'Prix unitaire', 'Tps fabrication', 'Poids (kg)', 'Certification', 'Actions']}>
             {filtered.map((p) => (
               <tr key={p.id} className="table-row-hover">
-                <td className="py-3 px-4 font-mono text-xs text-brand-600 font-semibold">{p.id}</td>
-                <td className="py-3 px-4 text-sm text-slate-900 dark:text-slate-100 max-w-[220px] truncate">{p.description}</td>
-                <td className="py-3 px-4">
+                <td className="py-2 px-3 font-mono text-xs text-brand-600 font-semibold">{p.id}</td>
+                <td className="py-2 px-3 text-sm text-slate-900 dark:text-slate-100 max-w-[220px] truncate">{p.description}</td>
+                <td className="py-2 px-3">
                   <Badge className="bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300">{p.category}</Badge>
                 </td>
-                <td className="py-3 px-4 text-sm font-semibold text-slate-900 dark:text-slate-100">{formatCurrency(p.unitPrice)}</td>
-                <td className="py-3 px-4 text-xs text-slate-500">{p.manufacturingTimeH}h</td>
-                <td className="py-3 px-4 text-xs text-slate-500">{p.weightKg} kg</td>
-                <td className="py-3 px-4"><Badge className={getCertColor(p.certification)}>{p.certification}</Badge></td>
-                <td className="py-3 px-4">
+                <td className="py-2 px-3 text-sm font-semibold text-slate-900 dark:text-slate-100">{formatCurrency(p.unitPrice)}</td>
+                <td className="py-2 px-3 text-xs text-slate-500">{p.manufacturingTimeH}h</td>
+                <td className="py-2 px-3 text-xs text-slate-500">{p.weightKg} kg</td>
+                <td className="py-2 px-3"><Badge className={getCertColor(p.certification)}>{p.certification}</Badge></td>
+                <td className="py-2 px-3">
                   <div className="flex items-center gap-1">
                     <button onClick={() => { setSelected(p); setShowDetail(true); }} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-brand-50 text-slate-400 hover:text-brand-600 transition-colors">
                       <Eye size={14} />

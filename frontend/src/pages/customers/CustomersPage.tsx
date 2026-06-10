@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Eye, Pencil, Trash2, Users2, TrendingUp, Globe } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Plus, Eye, Pencil, Users2, TrendingUp, Globe, Clock, ToggleLeft, ToggleRight } from 'lucide-react';
 import { customersAPI } from '../../services/api';
 import type { Customer } from '../../types';
 import { useAuthStore } from '../../store/authStore';
@@ -9,18 +10,22 @@ import {
 } from '../../components/ui';
 import { formatCurrency, formatDate } from '../../utils';
 
+// ─── Page principale ─────────────────────────────────────────────────────────
+
 export function CustomersPage() {
   const { permissions } = useAuthStore();
   const perms = permissions?.customers;
+  const navigate = useNavigate();
+
   const [customers, setCustomers] = useState<Customer[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [search, setSearch] = useState('');
+  const [loading, setLoading]     = useState(true);
+  const [error, setError]         = useState('');
+  const [search, setSearch]       = useState('');
   const [typeFilter, setTypeFilter] = useState('');
-  const [selected, setSelected] = useState<Customer | null>(null);
+  const [selected, setSelected]   = useState<Customer | null>(null);
   const [showDetail, setShowDetail] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
-  const [showEdit, setShowEdit] = useState(false);
+  const [showEdit, setShowEdit]   = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -46,12 +51,12 @@ export function CustomersPage() {
   });
 
   const totalCA = customers.reduce((s, c) => s + c.annualRevenue, 0);
-  const types = [...new Set(customers.map(c => c.type))];
+  const types   = [...new Set(customers.map(c => c.type))];
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Supprimer ce client ?')) return;
+  const handleToggleStatus = async (c: Customer) => {
+    const newStatus = c.status === 'Actif' ? 'Inactif' : 'Actif';
     try {
-      await customersAPI.delete(id);
+      await customersAPI.update(c.id, { status: newStatus });
       await load();
     } catch (e: any) {
       alert(e.response?.data?.message || 'Erreur');
@@ -59,15 +64,15 @@ export function CustomersPage() {
   };
 
   if (loading) return <PageLoader />;
-  if (error) return <ErrorState message={error} onRetry={load} />;
+  if (error)   return <ErrorState message={error} onRetry={load} />;
 
   return (
     <div className="space-y-6 page-enter">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title="Total clients" value={customers.length} icon={<Users2 size={18} />} color="blue" />
-        <StatCard title="Clients actifs" value={customers.filter(c => c.status === 'Actif').length} icon={<Users2 size={18} />} color="green" />
-        <StatCard title="CA annuel total" value={formatCurrency(totalCA)} icon={<TrendingUp size={18} />} color="purple" />
-        <StatCard title="Pays" value={new Set(customers.map(c => c.country)).size} icon={<Globe size={18} />} color="cyan" />
+        <StatCard title="Total clients"   value={customers.length}                                         icon={<Users2 size={18} />}     color="blue" />
+        <StatCard title="Clients actifs"  value={customers.filter(c => c.status === 'Actif').length}       icon={<Users2 size={18} />}     color="green" />
+        <StatCard title="CA annuel total" value={formatCurrency(totalCA)}                                   icon={<TrendingUp size={18} />} color="purple" />
+        <StatCard title="Pays"            value={new Set(customers.map(c => c.country)).size}               icon={<Globe size={18} />}      color="cyan" />
       </div>
 
       <div className="card">
@@ -90,37 +95,56 @@ export function CustomersPage() {
         {filtered.length === 0 ? (
           <EmptyState icon={<Users2 size={24} />} title="Aucun client" />
         ) : (
-          <Table headers={['Réf.', 'Nom', 'Pays', 'Type', 'CA annuel', 'Premier contrat', 'Statut', 'Actions']}>
+          <Table headers={['ID client', 'Nom', 'Pays', 'Type', 'CA annuel', 'Premier contrat', 'Statut', 'Actions']}>
             {filtered.map((c) => (
               <tr key={c.id} className="table-row-hover">
-                <td className="py-3 px-4 font-mono text-xs text-brand-600 font-semibold">{c.id}</td>
-                <td className="py-3 px-4 text-sm font-medium text-slate-900 dark:text-slate-100">{c.name}</td>
-                <td className="py-3 px-4 text-xs text-slate-500">{c.country}</td>
-                <td className="py-3 px-4">
+                <td className="py-2 px-3 font-mono text-xs text-brand-600 font-semibold">{c.id}</td>
+                <td className="py-2 px-3 text-sm font-medium text-slate-900 dark:text-slate-100">{c.name}</td>
+                <td className="py-2 px-3 text-xs text-slate-500">{c.country}</td>
+                <td className="py-2 px-3">
                   <Badge className={c.type === 'Grand Compte' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300' : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400'}>
                     {c.type}
                   </Badge>
                 </td>
-                <td className="py-3 px-4 text-sm font-semibold text-slate-900 dark:text-slate-100">{formatCurrency(c.annualRevenue)}</td>
-                <td className="py-3 px-4 text-xs text-slate-500">{formatDate(c.firstContractDate)}</td>
-                <td className="py-3 px-4">
+                <td className="py-2 px-3 text-sm font-semibold text-slate-900 dark:text-slate-100">{formatCurrency(c.annualRevenue)}</td>
+                <td className="py-2 px-3 text-xs text-slate-500">{formatDate(c.firstContractDate)}</td>
+                <td className="py-2 px-3">
                   <Badge className={c.status === 'Actif' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' : 'bg-slate-100 text-slate-600'} dot>
                     {c.status}
                   </Badge>
                 </td>
-                <td className="py-3 px-4">
+                <td className="py-2 px-3">
                   <div className="flex items-center gap-1">
-                    <button onClick={() => { setSelected(c); setShowDetail(true); }} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-brand-50 text-slate-400 hover:text-brand-600 transition-colors">
+                    <button
+                      onClick={() => { setSelected(c); setShowDetail(true); }}
+                      className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-brand-50 text-slate-400 hover:text-brand-600 transition-colors"
+                      title="Détails"
+                    >
                       <Eye size={14} />
+                    </button>
+                    <button
+                      onClick={() => navigate(`/audit?tab=client&id=${c.id}`)}
+                      className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-purple-50 text-slate-400 hover:text-purple-600 transition-colors"
+                      title="Voir l'historique"
+                    >
+                      <Clock size={14} />
                     </button>
                     <PermissionGuard allowed={!!perms?.canUpdate}>
                       <button onClick={() => { setSelected(c); setShowEdit(true); }} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-amber-50 text-slate-400 hover:text-amber-600 transition-colors">
                         <Pencil size={14} />
                       </button>
                     </PermissionGuard>
-                    <PermissionGuard allowed={!!perms?.canDelete}>
-                      <button onClick={() => handleDelete(c.id)} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-red-50 text-slate-400 hover:text-red-600 transition-colors">
-                        <Trash2 size={14} />
+                    <PermissionGuard allowed={!!perms?.canUpdate}>
+                      <button
+                        onClick={() => handleToggleStatus(c)}
+                        className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${
+                          c.status === 'Actif'
+                            ? 'hover:bg-red-50 text-green-500 hover:text-red-500'
+                            : 'hover:bg-green-50 text-slate-400 hover:text-green-600'
+                        }`}
+                        title={c.status === 'Actif' ? 'Désactiver le client' : 'Activer le client'}
+                      >
+                        {c.status === 'Actif' ? <ToggleRight size={16} /> : <ToggleLeft size={16} />}
                       </button>
                     </PermissionGuard>
                   </div>
@@ -131,32 +155,33 @@ export function CustomersPage() {
         )}
       </div>
 
+      {/* Modal détail */}
       <Modal isOpen={showDetail} onClose={() => setShowDetail(false)} title={selected?.name || ''} size="md">
         {selected && (
-          <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                { label: 'Référence', value: selected.id },
-                { label: 'Pays', value: selected.country },
-                { label: 'Type', value: selected.type },
-                { label: 'Statut', value: selected.status },
-                { label: 'CA annuel', value: formatCurrency(selected.annualRevenue) },
-                { label: 'Premier contrat', value: formatDate(selected.firstContractDate) },
-              ].map(f => (
-                <div key={f.label}>
-                  <p className="text-xs text-slate-500">{f.label}</p>
-                  <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{f.value}</p>
-                </div>
-              ))}
-            </div>
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { label: 'ID client',       value: selected.id },
+              { label: 'Pays',            value: selected.country },
+              { label: 'Type',            value: selected.type },
+              { label: 'Statut',          value: selected.status },
+              { label: 'CA annuel',       value: formatCurrency(selected.annualRevenue) },
+              { label: 'Premier contrat', value: formatDate(selected.firstContractDate) },
+            ].map(f => (
+              <div key={f.label}>
+                <p className="text-xs text-slate-500">{f.label}</p>
+                <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{f.value}</p>
+              </div>
+            ))}
           </div>
         )}
       </Modal>
 
+      {/* Modal création */}
       <Modal isOpen={showCreate} onClose={() => setShowCreate(false)} title="Nouveau client" size="md">
         <CustomerForm onSuccess={() => { setShowCreate(false); load(); }} />
       </Modal>
 
+      {/* Modal édition */}
       <Modal isOpen={showEdit} onClose={() => setShowEdit(false)} title="Modifier le client" size="md">
         {selected && <CustomerForm customer={selected} onSuccess={() => { setShowEdit(false); load(); }} />}
       </Modal>
@@ -164,20 +189,22 @@ export function CustomersPage() {
   );
 }
 
+// ─── Formulaire client ───────────────────────────────────────────────────────
+
 function CustomerForm({ customer, onSuccess }: { customer?: Customer; onSuccess: () => void }) {
   const isEdit = !!customer;
   const [form, setForm] = useState({
-    id: customer?.id || `CLI${String(Date.now()).slice(-3)}`,
-    name: customer?.name || '',
-    country: customer?.country || '',
-    type: customer?.type || 'Moyen',
-    annualRevenue: customer?.annualRevenue?.toString() || '',
+    id:                customer?.id || `CLI${String(Date.now()).slice(-3)}`,
+    name:              customer?.name || '',
+    country:           customer?.country || '',
+    type:              customer?.type || 'Moyen',
+    annualRevenue:     customer?.annualRevenue?.toString() || '',
     firstContractDate: customer?.firstContractDate?.split('T')[0] || new Date().toISOString().split('T')[0],
-    status: customer?.status || 'Actif',
+    status:            customer?.status || 'Actif',
   });
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     try {
@@ -200,7 +227,7 @@ function CustomerForm({ customer, onSuccess }: { customer?: Customer; onSuccess:
       <div className="grid grid-cols-2 gap-3">
         {!isEdit && (
           <div>
-            <label className="label">Référence</label>
+            <label className="label">ID client</label>
             <input value={form.id} onChange={e => setForm({...form, id: e.target.value})} className="input" required />
           </div>
         )}

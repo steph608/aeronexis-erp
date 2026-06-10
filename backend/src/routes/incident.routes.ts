@@ -5,30 +5,23 @@ import {
   createIncidentHandler,
   updateIncidentHandler,
   getStats,
+  getIncidentComments,
+  addIncidentComment,
 } from '../controllers/incident.controller';
 import { authenticate, authorize } from '../middleware/auth.middleware';
 
 const router = Router();
 
-// Toutes les routes nécessitent d'être connecté
 router.use(authenticate);
 
-// Statistiques
 router.get('/stats', getStats);
-
-// Liste tous les incidents
 router.get('/', getIncidents);
-
-// Voir un incident
 router.get('/:id', getIncident);
-
-// Créer un incident — tous les rôles connectés peuvent signaler
 router.post('/', createIncidentHandler);
+router.put('/:id', authorize('ADMIN', 'PRODUCTION_MANAGER'), updateIncidentHandler);
 
-// Modifier un incident — Production Manager et Admin
-router.put('/:id',
-  authorize('ADMIN', 'PRODUCTION_MANAGER'),
-  updateIncidentHandler
-);
+// Commentaires
+router.get('/:id/comments', getIncidentComments);
+router.post('/:id/comments', addIncidentComment);
 
 export default router;

@@ -6,6 +6,7 @@ import {
   updateOrderHandler,
   deleteOrderHandler,
   getStats,
+  getOrderManufacturing,
 } from '../controllers/order.controller';
 import { authenticate, authorize } from '../middleware/auth.middleware';
 
@@ -22,6 +23,9 @@ router.get('/', getOrders);
 
 // Voir une commande
 router.get('/:id', getOrder);
+
+// OFs liés à une commande (via orderId ou correspondance produit)
+router.get('/:id/manufacturing', getOrderManufacturing);
 
 // Créer une commande — Sales Manager et Admin
 router.post('/',

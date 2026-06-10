@@ -73,6 +73,9 @@ export const loginUser = async (email: string, password: string) => {
       id: user.id,
       email: user.email,
       role: user.role,
+      site: (user as any).site ?? 'Site Toulouse',
+      firstName: user.firstName,
+      lastName: user.lastName,
     },
     env.JWT_SECRET as string,
     { expiresIn: '8h' }
@@ -87,6 +90,7 @@ export const loginUser = async (email: string, password: string) => {
       firstName: user.firstName,
       lastName: user.lastName,
       role: user.role,
+      site: (user as any).site ?? 'Site Toulouse',
     },
   };
 };

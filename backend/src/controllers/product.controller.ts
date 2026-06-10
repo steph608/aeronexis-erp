@@ -9,6 +9,7 @@ import {
   deleteProduct,
   getProductStats,
 } from '../services/product.service';
+import { logAction } from '../services/audit.service';
 
 // ================================
 // VALIDATION
@@ -80,6 +81,16 @@ export const createProductHandler = async (
   try {
     const validatedData = createSchema.parse(req.body);
     const product = await createProduct(validatedData);
+
+    await logAction({
+      userId: req.user!.id,
+      userEmail: req.user!.email,
+      action: 'CREATE',
+      module: 'products',
+      description: `Nouveau produit ajouté — ${product.description} (${product.id}) — Catégorie: ${product.category} — Prix unitaire: ${product.unitPrice.toLocaleString('fr-FR')} € — Certification: ${product.certification}`,
+      ipAddress: req.ip,
+    });
+
     res.status(201).json({
       success: true,
       message: 'Produit créé avec succès',
@@ -87,16 +98,9 @@ export const createProductHandler = async (
     });
   } catch (error: any) {
     if (error.name === 'ZodError') {
-      return res.status(400).json({
-        success: false,
-        message: 'Données invalides',
-        errors: error.errors,
-      });
+      return res.status(400).json({ success: false, message: 'Données invalides', errors: error.errors });
     }
-    res.status(400).json({
-      success: false,
-      message: error.message,
-    });
+    res.status(400).json({ success: false, message: error.message });
   }
 };
 

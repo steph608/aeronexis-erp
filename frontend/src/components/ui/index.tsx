@@ -104,17 +104,17 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalPr
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-      <div className={cn('relative bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full animate-slide-up', sizes[size])}>
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700">
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{title}</h2>
+      <div className={cn('relative bg-white dark:bg-slate-800 rounded-lg shadow-2xl w-full animate-slide-up', sizes[size])}>
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-200 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-800/60">
+          <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-100 uppercase tracking-[0.06em]">{title}</h2>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 transition-colors"
+            className="w-7 h-7 rounded flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-400 transition-colors"
           >
-            <X size={16} />
+            <X size={14} />
           </button>
         </div>
-        <div className="p-6">{children}</div>
+        <div className="p-5">{children}</div>
       </div>
     </div>
   );
@@ -152,26 +152,26 @@ interface StatCardProps {
 }
 export function StatCard({ title, value, subtitle, icon, color = 'blue', trend }: StatCardProps) {
   const colorMap: Record<string, string> = {
-    blue: 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400',
-    green: 'bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400',
-    orange: 'bg-orange-50 text-orange-600 dark:bg-orange-900/20 dark:text-orange-400',
-    red: 'bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400',
-    purple: 'bg-purple-50 text-purple-600 dark:bg-purple-900/20 dark:text-purple-400',
-    cyan: 'bg-cyan-50 text-cyan-600 dark:bg-cyan-900/20 dark:text-cyan-400',
+    blue:   'bg-blue-50   text-blue-600   dark:bg-blue-900/20   dark:text-blue-400',
+    green:  'bg-blue-50   text-blue-700   dark:bg-blue-900/20   dark:text-blue-400',
+    orange: 'bg-blue-100  text-blue-800   dark:bg-blue-900/30   dark:text-blue-300',
+    red:    'bg-blue-900  text-white       dark:bg-blue-950      dark:text-blue-100',
+    purple: 'bg-blue-50   text-blue-600   dark:bg-blue-900/20   dark:text-blue-400',
+    cyan:   'bg-blue-100  text-blue-700   dark:bg-blue-900/20   dark:text-blue-300',
   };
 
   return (
-    <div className="card p-5 hover:shadow-card-hover transition-all duration-200">
-      <div className="flex items-start justify-between mb-3">
-        <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">{title}</p>
-        <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center', colorMap[color] || colorMap.blue)}>
+    <div className="card p-4 hover:shadow-card-hover transition-all duration-200">
+      <div className="flex items-center gap-2 mb-2">
+        <div className={cn('w-7 h-7 rounded flex items-center justify-center flex-shrink-0', colorMap[color] || colorMap.blue)}>
           {icon}
         </div>
+        <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.07em]">{title}</p>
       </div>
-      <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 font-display">{value}</p>
-      {subtitle && <p className="text-xs text-slate-500 mt-1">{subtitle}</p>}
+      <p className="text-[22px] font-bold text-slate-900 dark:text-slate-100 font-mono leading-none">{value}</p>
+      {subtitle && <p className="text-[11px] text-slate-400 mt-1">{subtitle}</p>}
       {trend && (
-        <div className={cn('flex items-center gap-1 mt-2 text-xs font-medium', trend.value >= 0 ? 'text-green-600' : 'text-red-500')}>
+        <div className={cn('inline-flex items-center gap-1 mt-2 text-[11px] font-semibold px-1.5 py-0.5 rounded', trend.value >= 0 ? 'bg-blue-50 text-blue-700' : 'bg-slate-100 text-slate-600')}>
           <span>{trend.value >= 0 ? '↑' : '↓'} {Math.abs(trend.value)}%</span>
           <span className="text-slate-400 font-normal">{trend.label}</span>
         </div>
@@ -199,23 +199,23 @@ interface TableProps {
 export function Table({ headers, children, isLoading }: TableProps) {
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-sm">
+      <table className="w-full">
         <thead>
-          <tr className="border-b border-slate-200 dark:border-slate-700">
+          <tr className="border-b border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/50">
             {headers.map((h) => (
-              <th key={h} className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wide whitespace-nowrap">
+              <th key={h} className="text-left py-2 px-3 text-[11px] font-semibold text-slate-400 uppercase tracking-[0.07em] whitespace-nowrap">
                 {h}
               </th>
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50">
+        <tbody>
           {isLoading
             ? Array.from({ length: 5 }).map((_, i) => (
-                <tr key={i}>
+                <tr key={i} className="border-b border-slate-100 dark:border-slate-700/50">
                   {headers.map((h) => (
-                    <td key={h} className="py-3 px-4">
-                      <Skeleton className="h-4 w-full" />
+                    <td key={h} className="py-2 px-3">
+                      <Skeleton className="h-3.5 w-full" />
                     </td>
                   ))}
                 </tr>

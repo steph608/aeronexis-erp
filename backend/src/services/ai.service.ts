@@ -194,6 +194,103 @@ export const analyzeQualityIncidents = async () => {
 };
 
 // ================================
+// ANALYSE DES MARGES PAR PRODUIT
+// ================================
+export const analyzeMargins = async () => {
+  const orderLines = await prisma.orderLine.findMany({
+    include: {
+      product: { select: { id: true, description: true, category: true, unitPrice: true, manufacturingTimeH: true } },
+      order:   { select: { status: true, createdAt: true } },
+    },
+  });
+
+  // Grouper par produit
+  const byProduct: Record<string, { description: string; category: string; unitPrice: number; totalRevenue: number; totalQty: number; nbCommandes: number }> = {};
+  for (const line of orderLines) {
+    const pid = line.productId;
+    if (!byProduct[pid]) {
+      byProduct[pid] = {
+        description: line.product.description,
+        category: line.product.category,
+        unitPrice: line.product.unitPrice,
+        totalRevenue: 0, totalQty: 0, nbCommandes: 0,
+      };
+    }
+    byProduct[pid].totalRevenue += line.lineAmount;
+    byProduct[pid].totalQty    += line.quantity;
+    byProduct[pid].nbCommandes += 1;
+  }
+
+  const produits = Object.entries(byProduct).map(([id, p]) => ({
+    id, ...p,
+    revenuMoyen: p.nbCommandes > 0 ? Math.round(p.totalRevenue / p.nbCommandes) : 0,
+  })).sort((a, b) => b.totalRevenue - a.totalRevenue);
+
+  const totalRevenu = produits.reduce((s, p) => s + p.totalRevenue, 0);
+  const top3 = produits.slice(0, 3);
+
+  return {
+    analyse: 'Répartition du chiffre d\'affaires par produit',
+    produits,
+    totalRevenu,
+    top3,
+    recommandations: [
+      top3[0] ? `⭐ Produit phare : ${top3[0].description} (${((top3[0].totalRevenue / totalRevenu) * 100).toFixed(0)}% du CA)` : '',
+      top3.length > 1 ? `📈 Top 3 produits représentent ${((top3.reduce((s, p) => s + p.totalRevenue, 0) / totalRevenu) * 100).toFixed(0)}% du chiffre d'affaires` : '',
+      produits.length > 3 ? `🔍 ${produits.length - 3} autres produit(s) à valoriser davantage` : '',
+    ].filter(Boolean),
+  };
+};
+
+// ================================
+// RÉSUMÉ RAPIDE (KPIs instantanés)
+// ================================
+export const getQuickSummary = async () => {
+  const today = new Date();
+
+  const [totalOrders, lateOrders, ofEnCours, incidents, critiques, materials, totalRevenu] =
+    await Promise.all([
+      prisma.order.count(),
+      prisma.order.count({ where: { status: { in: ['En production', 'Planifiée'] }, expectedDeliveryDate: { lt: today } } }),
+      prisma.manufacturingOrder.count({ where: { status: 'En cours' } }),
+      prisma.qualityIncident.count(),
+      prisma.qualityIncident.count({ where: { severity: 'Critique', status: { not: 'Résolu' } } }),
+      prisma.rawMaterial.findMany({ select: { currentStock: true, minimumStock: true, reservedStock: true } }),
+      prisma.order.aggregate({ _sum: { totalAmount: true } }),
+    ]);
+
+  const stockAlertes = materials.filter(m => (m.currentStock - m.reservedStock) <= m.minimumStock).length;
+
+  // Score de santé — formule proportionnelle (chaque indicateur contribue au max)
+  let healthScore = 100;
+
+  // Taux de retard (max -40 pts) : 0% late = 0, 100% late = -40
+  const retardRate = totalOrders > 0 ? lateOrders / totalOrders : 0;
+  healthScore -= Math.round(retardRate * 40);
+
+  // Incidents critiques ouverts (max -30 pts : 3 pts chacun, plafonné)
+  healthScore -= Math.min(critiques * 3, 30);
+
+  // Alertes stock (max -20 pts : 2 pts chacune, plafonnée)
+  healthScore -= Math.min(stockAlertes * 2, 20);
+
+  // Taux résolution incidents (max -10 pts)
+  const totalIncidents = await prisma.qualityIncident.count();
+  const resolus = await prisma.qualityIncident.count({ where: { status: 'Résolu' } });
+  const tauxResolution = totalIncidents > 0 ? resolus / totalIncidents : 1;
+  if (tauxResolution < 0.5) healthScore -= Math.round((0.5 - tauxResolution) * 20);
+
+  healthScore = Math.max(5, Math.min(100, healthScore));
+
+  return {
+    totalOrders, lateOrders, ofEnCours, incidents, critiques, stockAlertes,
+    totalRevenu: totalRevenu._sum.totalAmount || 0,
+    healthScore,
+    healthLevel: healthScore >= 80 ? 'Excellent' : healthScore >= 60 ? 'Acceptable' : healthScore >= 40 ? 'Préoccupant' : 'Critique',
+  };
+};
+
+// ================================
 // RAPPORT COMPLET IA
 // ================================
 export const generateFullReport = async () => {

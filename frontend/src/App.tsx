@@ -11,6 +11,8 @@ import { CustomersPage } from './pages/customers/CustomersPage';
 import { ProductsPage } from './pages/products/ProductsPage';
 import { UsersPage } from './pages/users/UsersPage';
 import { AIPage } from './pages/ai/AIPage';
+import ShipmentsPage from './pages/shipments/ShipmentsPage';
+import AuditPage from './pages/audit/AuditPage';
 import ForbiddenPage from './pages/ForbiddenPage';
 import { getAccessibleModules } from './lib/permissions';
 
@@ -157,6 +159,24 @@ export default function App() {
             element={
               <ProtectedRoute requiredModule="ai">
                 <AIPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="shipments"
+            element={
+              <ProtectedRoute requiredModule="shipments">
+                <ShipmentsPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="audit"
+            element={
+              <ProtectedRoute requiredModule="audit">
+                <AuditPage />
               </ProtectedRoute>
             }
           />

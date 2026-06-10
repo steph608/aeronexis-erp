@@ -16,6 +16,7 @@ export interface User {
   firstName: string;
   lastName: string;
   role: Role;
+  site?: string;
   isActive: boolean;
   createdAt?: string;
 }
@@ -159,6 +160,18 @@ export interface DashboardData {
   dernieresCommandes: Order[];
   derniersIncidents: QualityIncident[];
   derniersOFs: ManufacturingOrder[];
+  monthlyStats: {
+    name: string; year: number; month: number;
+    ca: number; commandes: number; ofs: number; ofsTermines: number;
+    incidents: number; criticalIncidents: number;
+    clients: number; expeditions: number; deliveryDelays: number;
+    revenueRaw: number; costRaw: number; revenue: number;
+    yieldRate: number | null; grossMarginPct: number | null;
+  }[];
+  monthlyDeltas: {
+    ca: number | null; commandes: number | null; ofs: number | null;
+    incidents: number | null; clients: number | null; expeditions: number | null;
+  };
 }
 
 // ── API Responses ─────────────────────────
@@ -199,6 +212,7 @@ export type Permissions = {
     delays: boolean;
     stock: boolean;
     quality: boolean;
+    margins: boolean;
     fullReport: boolean;
   };
 };

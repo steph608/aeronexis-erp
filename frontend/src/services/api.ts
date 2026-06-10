@@ -33,12 +33,12 @@ api.interceptors.response.use(
 
 // ── Auth ───────────────────────────────────
 export const authAPI = {
-  login: (email: string, password: string) =>
-    api.post('/auth/login', { email, password }),
-  register: (data: any) =>
-    api.post('/auth/register', data),
-  me: () => api.get('/auth/me'),
-  logout: () => api.post('/auth/logout'),
+  login:          (email: string, password: string) => api.post('/auth/login', { email, password }),
+  register:       (data: any)                        => api.post('/auth/register', data),
+  me:             ()                                 => api.get('/auth/me'),
+  logout:         ()                                 => api.post('/auth/logout'),
+  updateProfile:  (data: { firstName: string; lastName: string }) => api.patch('/auth/profile', data),
+  changePassword: (data: { currentPassword: string; newPassword: string }) => api.patch('/auth/password', data),
 };
 
 // ── Dashboard ─────────────────────────────
@@ -51,6 +51,7 @@ export const ordersAPI = {
   getAll: () => api.get('/orders'),
   getOne: (id: string) => api.get(`/orders/${id}`),
   getStats: () => api.get('/orders/stats'),
+  getManufacturing: (id: string) => api.get(`/orders/${id}/manufacturing`),
   create: (data: any) => api.post('/orders', data),
   update: (id: string, data: any) => api.put(`/orders/${id}`, data),
   delete: (id: string) => api.delete(`/orders/${id}`),
@@ -84,6 +85,8 @@ export const incidentsAPI = {
   getStats: () => api.get('/incidents/stats'),
   create: (data: any) => api.post('/incidents', data),
   update: (id: string, data: any) => api.put(`/incidents/${id}`, data),
+  getComments: (id: string) => api.get(`/incidents/${id}/comments`),
+  addComment: (id: string, content: string) => api.post(`/incidents/${id}/comments`, { content }),
 };
 
 // ── Customers ─────────────────────────────
@@ -91,6 +94,7 @@ export const customersAPI = {
   getAll: () => api.get('/customers'),
   getOne: (id: string) => api.get(`/customers/${id}`),
   getStats: () => api.get('/customers/stats'),
+  getHistory: (id: string) => api.get(`/customers/${id}/history`),
   create: (data: any) => api.post('/customers', data),
   update: (id: string, data: any) => api.put(`/customers/${id}`, data),
   delete: (id: string) => api.delete(`/customers/${id}`),
@@ -117,10 +121,15 @@ export const usersAPI = {
 
 // ── AI ─────────────────────────────────────
 export const aiAPI = {
-  delays: () => api.get('/ai/delays'),
-  stock: () => api.get('/ai/stock'),
-  quality: () => api.get('/ai/quality'),
-  fullReport: () => api.get('/ai/report'),
+  summary:     () => api.get('/ai/summary'),
+  delays:      () => api.get('/ai/delays'),
+  stock:       () => api.get('/ai/stock'),
+  quality:     () => api.get('/ai/quality'),
+  margins:     () => api.get('/ai/margins'),
+  fullReport:  () => api.get('/ai/report'),
+  chat:        (messages: { role: string; content: string }[]) => api.post('/ai/chat', { messages }),
+  suggestions: () => api.get('/ai/suggestions'),
+  analyze:     (type: string) => api.get(`/ai/analyze/${type}`),
 };
 // ── Shipments ─────────────────────────────
 export const shipmentsAPI = {
@@ -133,10 +142,13 @@ export const shipmentsAPI = {
 
 // ── Notifications ─────────────────────────
 export const notificationsAPI = {
-  getAll: () => api.get('/notifications'),
-  getUnread: () => api.get('/notifications/unread'),
-  markRead: (id: number) => api.put(`/notifications/${id}/read`),
-  markAllRead: () => api.put('/notifications/read-all'),
+  getAll:         () => api.get('/notifications'),
+  getUnread:      () => api.get('/notifications/unread'),
+  getStockAlerts: () => api.get('/notifications/stock'),
+  checkStock:     () => api.post('/notifications/check-stock'),
+  markRead:       (id: number) => api.put(`/notifications/${id}/read`),
+  markAllRead:    () => api.put('/notifications/read-all'),
+  updateNote:     (id: number, note: string) => api.patch(`/notifications/${id}/note`, { note }),
 };
 
 // ── Audit ─────────────────────────────────
