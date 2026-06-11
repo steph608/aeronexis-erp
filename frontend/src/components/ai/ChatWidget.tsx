@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { X, Send, Bot, User, Loader2, Minimize2, Maximize2 } from 'lucide-react';
 import { aiAPI } from '../../services/api';
+import chatbotImg from '../../assets/chatbot.jpg';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -70,10 +71,10 @@ export function ChatWidget() {
     return (
       <button
         onClick={() => setOpen(true)}
-        className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-brand-600 hover:bg-brand-700 text-white shadow-lg hover:shadow-xl transition-all flex items-center justify-center z-50 group"
+        className="fixed bottom-6 right-6 w-14 h-14 rounded-full overflow-hidden shadow-lg hover:shadow-xl transition-all flex items-center justify-center z-50 group border-2 border-brand-600"
         title="Assistant IA"
       >
-        <Bot size={24} />
+        <img src={chatbotImg} alt="Assistant IA" className="w-full h-full object-cover" />
         <span className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white" />
       </button>
     );
@@ -84,8 +85,8 @@ export function ChatWidget() {
 
       {/* Header */}
       <div className="flex items-center gap-2.5 px-4 py-3 bg-brand-600 rounded-t-2xl text-white flex-shrink-0">
-        <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-          <Bot size={16} />
+        <div className="w-8 h-8 rounded-full overflow-hidden border border-white/30 flex-shrink-0">
+          <img src={chatbotImg} alt="Assistant IA" className="w-full h-full object-cover" />
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold leading-none">Assistant AERONEXIS</p>
