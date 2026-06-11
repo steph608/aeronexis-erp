@@ -69,14 +69,16 @@ export function ChatWidget() {
 
   if (!open) {
     return (
-      <button
-        onClick={() => setOpen(true)}
-        className="fixed bottom-6 right-6 w-14 h-14 rounded-full overflow-hidden shadow-lg hover:shadow-xl transition-all flex items-center justify-center z-50 group border-2 border-brand-600"
-        title="Assistant IA"
-      >
-        <img src={chatbotImg} alt="Assistant IA" className="w-full h-full object-cover" />
-        <span className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white" />
-      </button>
+      <div className="fixed bottom-6 right-6 z-50">
+        <button
+          onClick={() => setOpen(true)}
+          className="relative w-14 h-14 rounded-full overflow-hidden shadow-lg hover:shadow-xl transition-all flex items-center justify-center border-2 border-brand-600"
+          title="Assistant IA"
+        >
+          <img src={chatbotImg} alt="Assistant IA" className="w-full h-full object-cover" />
+        </button>
+        <span className="absolute top-0 right-0 w-3.5 h-3.5 bg-green-400 rounded-full border-2 border-white" />
+      </div>
     );
   }
 
